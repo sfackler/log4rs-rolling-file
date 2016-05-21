@@ -26,7 +26,10 @@ struct LogWriter {
 
 impl io::Write for LogWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.file.write(buf).map(|n| { self.len += n as u64; n })
+        self.file.write(buf).map(|n| {
+            self.len += n as u64;
+            n
+        })
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -63,11 +66,11 @@ impl Append for RollingFileAppender {
 
         if writer.is_none() {
             let file = try!(OpenOptions::new()
-                .write(true)
-                .append(true)
-                .truncate(!self.append)
-                .create(true)
-                .open(&self.path));
+                                .write(true)
+                                .append(true)
+                                .truncate(!self.append)
+                                .create(true)
+                                .open(&self.path));
             let len = if self.append {
                 try!(self.path.metadata()).len()
             } else {
