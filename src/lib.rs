@@ -13,28 +13,11 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, Write, BufWriter};
 use std::path::{Path, PathBuf};
 
-pub struct LogFile<'a> {
-    path: &'a Path,
-    len: u64,
-}
+use roll::Roll;
+use trigger::{LogFile, Trigger};
 
-impl<'a> LogFile<'a> {
-    pub fn path(&self) -> &Path {
-        self.path
-    }
-
-    pub fn len(&self) -> u64 {
-        self.len
-    }
-}
-
-pub trait Trigger: fmt::Debug + Send + Sync + 'static {
-    fn trigger(&self, file: &LogFile) -> Result<bool, Box<Error>>;
-}
-
-pub trait Roll: fmt::Debug + Send + Sync + 'static {
-    fn roll(&self, file: &Path) -> Result<(), Box<Error>>;
-}
+pub mod roll;
+pub mod trigger;
 
 struct LogWriter {
     file: BufWriter<File>,
@@ -104,15 +87,15 @@ impl Append for RollingFileAppender {
             writer.len
         };
 
-        let log_file = LogFile {
-            path: &self.path,
-            len: len,
-        };
-        if try!(self.trigger.trigger(&log_file)) {
+        if try!(self.trigger.trigger(&LogFile::new(&self.path, len))) {
             *writer = None;
             try!(self.roller.roll(&self.path));
         }
 
         Ok(())
     }
+}
+
+trait LogFileInternals<'a> {
+    fn new(path: &'a Path, len: u64) -> LogFile<'a>;
 }
