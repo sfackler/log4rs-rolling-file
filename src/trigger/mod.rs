@@ -4,6 +4,8 @@ use std::path::Path;
 
 use LogFileInternals;
 
+pub mod size;
+
 pub struct LogFile<'a> {
     path: &'a Path,
     len: u64,

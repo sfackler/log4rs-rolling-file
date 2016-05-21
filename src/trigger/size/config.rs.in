@@ -1,0 +1,14 @@
+use serde::de::{Deserialize, Deserializer};
+
+#[derive(Deserialize)]
+pub struct Config {
+    #[serde(deserialize_with = "deserialize_limit")]
+    pub limit: u64,
+}
+
+fn deserialize_limit<D>(d: &mut D) -> Result<u64, D::Error>
+    where D: Deserializer
+{
+    // FIXME
+    u64::deserialize(d)
+}

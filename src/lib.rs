@@ -2,22 +2,43 @@ extern crate antidote;
 extern crate log;
 extern crate log4rs;
 extern crate serde;
+extern crate serde_value;
 
 use antidote::Mutex;
 use log4rs::append::Append;
 use log4rs::encode::{self, Encode};
+use log4rs::encode::pattern::PatternEncoder;
+use log4rs::file::{Deserialize, Deserializers};
 use log::LogRecord;
 use std::error::Error;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Write, BufWriter};
 use std::path::{Path, PathBuf};
+use serde_value::Value;
 
+use config::Config;
 use roll::Roll;
 use trigger::{LogFile, Trigger};
+use trigger::size::SizeTriggerDeserializer;
 
 pub mod roll;
 pub mod trigger;
+#[cfg_attr(rustfmt, rustfmt_skip)]
+mod config;
+
+/// Registers this crate's deserializers.
+///
+/// The following mappings will be added:
+///
+/// * `Append`
+///   * `rolling_file` - `RollingFileAppenderDeserializer`
+/// * `Trigger`
+///   * `size` - `SizeTriggerDeserializer`
+pub fn register(d: &mut Deserializers) {
+    d.insert("rolling_file".to_owned(), Box::new(RollingFileAppenderDeserializer));
+    d.insert("size".to_owned(), Box::new(SizeTriggerDeserializer));
+}
 
 struct LogWriter {
     file: BufWriter<File>,
@@ -96,6 +117,75 @@ impl Append for RollingFileAppender {
         }
 
         Ok(())
+    }
+}
+
+impl RollingFileAppender {
+    pub fn builder() -> RollingFileAppenderBuilder {
+        RollingFileAppenderBuilder {
+            append: true,
+            encoder: None,
+        }
+    }
+}
+
+pub struct RollingFileAppenderBuilder {
+    append: bool,
+    encoder: Option<Box<Encode>>,
+}
+
+impl RollingFileAppenderBuilder {
+    pub fn append(mut self, append: bool) -> RollingFileAppenderBuilder {
+        self.append = append;
+        self
+    }
+
+    pub fn encoder(mut self, encoder: Box<Encode>) -> RollingFileAppenderBuilder {
+        self.encoder = Some(encoder);
+        self
+    }
+
+    pub fn build<P>(self, path: P, trigger: Box<Trigger>, roller: Box<Roll>) -> RollingFileAppender
+        where P: AsRef<Path>
+    {
+        RollingFileAppender {
+            writer: Mutex::new(None),
+            path: path.as_ref().to_owned(),
+            append: self.append,
+            encoder: self.encoder.unwrap_or_else(|| Box::new(PatternEncoder::default())),
+            trigger: trigger,
+            roller: roller,
+        }
+    }
+}
+
+pub struct RollingFileAppenderDeserializer;
+
+impl Deserialize for RollingFileAppenderDeserializer {
+    type Trait = Append;
+
+    fn deserialize(&self,
+                   config: Value,
+                   deserializers: &Deserializers)
+                   -> Result<Box<Append>, Box<Error>> {
+        let config: Config = try!(config.deserialize_into());
+
+        let mut builder = RollingFileAppender::builder();
+        if let Some(append) = config.append {
+            builder = builder.append(append);
+        }
+        if let Some(encoder) = config.encoder {
+            let encoder = try!(deserializers.deserialize("encoder", &encoder.kind, encoder.config));
+            builder = builder.encoder(encoder);
+        }
+
+        let trigger = try!(deserializers.deserialize("trigger",
+                                                     &config.trigger.kind,
+                                                     config.trigger.config));
+        let roller = try!(deserializers.deserialize("roller",
+                                                    &config.roller.kind,
+                                                    config.roller.config));
+        Ok(Box::new(builder.build(config.path, trigger, roller)))
     }
 }
 
