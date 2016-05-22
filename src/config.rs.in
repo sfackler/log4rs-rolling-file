@@ -4,6 +4,7 @@ use serde_value::Value;
 use std::collections::BTreeMap;
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     pub path: String,
     pub append: Option<bool>,

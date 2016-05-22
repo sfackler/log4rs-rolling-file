@@ -1,6 +1,7 @@
 use serde::de::{Deserialize, Deserializer};
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(deserialize_with = "deserialize_limit")]
     pub limit: u64,

@@ -21,6 +21,7 @@ use config::Config;
 use roll::Roll;
 use trigger::{LogFile, Trigger};
 use trigger::size::SizeTriggerDeserializer;
+use roll::delete::DeleteRollerDeserializer;
 
 pub mod roll;
 pub mod trigger;
@@ -31,13 +32,16 @@ mod config;
 ///
 /// The following mappings will be added:
 ///
-/// * `Append`
-///   * `rolling_file` - `RollingFileAppenderDeserializer`
-/// * `Trigger`
-///   * `size` - `SizeTriggerDeserializer`
+/// * Appenders
+///   * "rolling_file" -> `RollingFileAppenderDeserializer`
+/// * Triggers
+///   * "size" -> `SizeTriggerDeserializer`
+/// * Rollers
+///   * "delete" -> `DeleteRollerDeserializer`
 pub fn register(d: &mut Deserializers) {
     d.insert("rolling_file".to_owned(), Box::new(RollingFileAppenderDeserializer));
     d.insert("size".to_owned(), Box::new(SizeTriggerDeserializer));
+    d.insert("delete".to_owned(), Box::new(DeleteRollerDeserializer));
 }
 
 struct LogWriter {
@@ -191,4 +195,32 @@ impl Deserialize for RollingFileAppenderDeserializer {
 
 trait LogFileInternals<'a> {
     fn new(path: &'a Path, len: u64) -> LogFile<'a>;
+}
+
+#[cfg(test)]
+mod test {
+    use log4rs::file::{Config, Deserializers, Format};
+
+    use super::*;
+
+    #[test]
+    fn deserialize() {
+        let config = "
+appenders:
+  foo:
+    kind: rolling_file
+    trigger:
+      kind: size
+      limit: 1024
+    roller:
+      kind: delete
+loggers:
+appenders:
+";
+
+        let mut deserializers = Deserializers::default();
+        register(&mut deserializers);
+
+        Config::parse(config, Format::Yaml, &deserializers).unwrap();
+    }
 }

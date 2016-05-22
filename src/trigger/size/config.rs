@@ -3,135 +3,192 @@ use serde::de::{Deserialize, Deserializer};
 pub struct Config {
     pub limit: u64,
 }
-impl ::serde::de::Deserialize for Config {
-    fn deserialize<__D>(deserializer: &mut __D)
-     -> ::std::result::Result<Config, __D::Error> where
-     __D: ::serde::de::Deserializer {
-        {
-            #[allow(non_camel_case_types)]
-            enum __Field { __field0, __ignore, }
-            impl ::serde::de::Deserialize for __Field {
-                #[inline]
-                fn deserialize<D>(deserializer: &mut D)
-                 -> ::std::result::Result<__Field, D::Error> where
-                 D: ::serde::de::Deserializer {
-                    use std::marker::PhantomData;
-                    struct __FieldVisitor<D> {
-                        phantom: PhantomData<D>,
+#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+const _IMPL_DESERIALIZE_FOR_Config: () =
+    {
+        extern crate serde as _serde;
+        #[automatically_derived]
+        impl _serde::de::Deserialize for Config {
+            fn deserialize<__D>(deserializer: &mut __D)
+             -> ::std::result::Result<Config, __D::Error> where
+             __D: _serde::de::Deserializer {
+                {
+                    #[allow(non_camel_case_types)]
+                    enum __Field { __field0, }
+                    impl _serde::de::Deserialize for __Field {
+                        #[inline]
+                        fn deserialize<__D>(deserializer: &mut __D)
+                         -> ::std::result::Result<__Field, __D::Error> where
+                         __D: _serde::de::Deserializer {
+                            struct __FieldVisitor<__D> {
+                                phantom: ::std::marker::PhantomData<__D>,
+                            }
+                            impl <__D> _serde::de::Visitor for
+                             __FieldVisitor<__D> where
+                             __D: _serde::de::Deserializer {
+                                type
+                                Value
+                                =
+                                __Field;
+                                fn visit_usize<__E>(&mut self, value: usize)
+                                 -> ::std::result::Result<__Field, __E> where
+                                 __E: _serde::de::Error {
+                                    match value {
+                                        0usize => { Ok(__Field::__field0) }
+                                        _ => {
+                                            Err(_serde::de::Error::invalid_value("expected a field"))
+                                        }
+                                    }
+                                }
+                                fn visit_str<__E>(&mut self, value: &str)
+                                 -> ::std::result::Result<__Field, __E> where
+                                 __E: _serde::de::Error {
+                                    match value {
+                                        "limit" => { Ok(__Field::__field0) }
+                                        _ =>
+                                        Err(_serde::de::Error::unknown_field(value)),
+                                    }
+                                }
+                                fn visit_bytes<__E>(&mut self, value: &[u8])
+                                 -> ::std::result::Result<__Field, __E> where
+                                 __E: _serde::de::Error {
+                                    match value {
+                                        b"limit" => { Ok(__Field::__field0) }
+                                        _ => {
+                                            let value =
+                                                ::std::string::String::from_utf8_lossy(value);
+                                            Err(_serde::de::Error::unknown_field(&value))
+                                        }
+                                    }
+                                }
+                            }
+                            deserializer.deserialize_struct_field(__FieldVisitor::<__D>{phantom:
+                                                                                            ::std::marker::PhantomData,})
+                        }
                     }
-                    impl <__D> ::serde::de::Visitor for __FieldVisitor<__D>
-                     where __D: ::serde::de::Deserializer {
+                    struct __Visitor<__D: _serde::de::Deserializer>(::std::marker::PhantomData<__D>);
+                    impl <__D: 
+                          // FIXME
+                          _serde::de::Deserializer> _serde::de::Visitor for
+                     __Visitor<__D> {
                         type
                         Value
                         =
-                        __Field;
-                        fn visit_usize<E>(&mut self, value: usize)
-                         -> ::std::result::Result<__Field, E> where
-                         E: ::serde::de::Error {
-                            match value {
-                                0usize => { Ok(__Field::__field0) }
-                                _ => Ok(__Field::__ignore),
+                        Config;
+                        #[inline]
+                        fn visit_seq<__V>(&mut self, mut visitor: __V)
+                         -> ::std::result::Result<Config, __V::Error> where
+                         __V: _serde::de::SeqVisitor {
+                            {
+                                let __field0 =
+                                    match {
+                                              struct __SerdeDeserializeWithStruct {
+                                                  value: u64,
+                                                  phantom: ::std::marker::PhantomData<Config>,
+                                              }
+                                              impl _serde::de::Deserialize for
+                                               __SerdeDeserializeWithStruct {
+                                                  fn deserialize<__D>(__d:
+                                                                          &mut __D)
+                                                   ->
+                                                       ::std::result::Result<Self,
+                                                                             __D::Error>
+                                                   where
+                                                   __D: _serde::de::Deserializer {
+                                                      let value =
+                                                          try!(deserialize_limit
+                                                               ( __d ));
+                                                      Ok(__SerdeDeserializeWithStruct{value:
+                                                                                          value,
+                                                                                      phantom:
+                                                                                          ::std::marker::PhantomData,})
+                                                  }
+                                              }
+                                              try!(visitor . visit :: <
+                                                   __SerdeDeserializeWithStruct
+                                                   > (
+                                                   )).map(|wrap| wrap.value)
+                                          } {
+                                        Some(value) => { value }
+                                        None => {
+                                            return Err(_serde::de::Error::end_of_stream());
+                                        }
+                                    };
+                                try!(visitor . end (  ));
+                                Ok(Config{limit: __field0,})
                             }
                         }
-                        fn visit_str<E>(&mut self, value: &str)
-                         -> ::std::result::Result<__Field, E> where
-                         E: ::serde::de::Error {
-                            match value {
-                                "limit" => { Ok(__Field::__field0) }
-                                _ => Ok(__Field::__ignore),
-                            }
-                        }
-                        fn visit_bytes<E>(&mut self, value: &[u8])
-                         -> ::std::result::Result<__Field, E> where
-                         E: ::serde::de::Error {
-                            match value {
-                                b"limit" => { Ok(__Field::__field0) }
-                                _ => Ok(__Field::__ignore),
+                        #[inline]
+                        fn visit_map<__V>(&mut self, mut visitor: __V)
+                         -> ::std::result::Result<Config, __V::Error> where
+                         __V: _serde::de::MapVisitor {
+                            {
+                                let mut __field0: Option<u64> = None;
+                                while let Some(key) =
+                                          try!(visitor . visit_key :: <
+                                               __Field > (  )) {
+                                    match key {
+                                        __Field::__field0 => {
+                                            if __field0.is_some() {
+                                                return Err(<__V::Error as
+                                                               _serde::de::Error>::duplicate_field("limit"));
+                                            }
+                                            __field0 =
+                                                Some(({
+                                                          struct __SerdeDeserializeWithStruct {
+                                                              value: u64,
+                                                              phantom: ::std::marker::PhantomData<Config>,
+                                                          }
+                                                          impl _serde::de::Deserialize
+                                                           for
+                                                           __SerdeDeserializeWithStruct
+                                                           {
+                                                              fn deserialize<__D>(__d:
+                                                                                      &mut __D)
+                                                               ->
+                                                                   ::std::result::Result<Self,
+                                                                                         __D::Error>
+                                                               where
+                                                               __D: _serde::de::Deserializer {
+                                                                  let value =
+                                                                      try!(deserialize_limit
+                                                                           (
+                                                                           __d
+                                                                           ));
+                                                                  Ok(__SerdeDeserializeWithStruct{value:
+                                                                                                      value,
+                                                                                                  phantom:
+                                                                                                      ::std::marker::PhantomData,})
+                                                              }
+                                                          }
+                                                          try!(visitor .
+                                                               visit_value ::
+                                                               <
+                                                               __SerdeDeserializeWithStruct
+                                                               > (  )).value
+                                                      }));
+                                        }
+                                    }
+                                }
+                                let __field0 =
+                                    match __field0 {
+                                        Some(__field0) => __field0,
+                                        None =>
+                                        return Err(<__V::Error as
+                                                       _serde::de::Error>::missing_field("limit")),
+                                    };
+                                try!(visitor . end (  ));
+                                Ok(Config{limit: __field0,})
                             }
                         }
                     }
-                    deserializer.deserialize_struct_field(__FieldVisitor::<D>{phantom:
-                                                                                  PhantomData,})
+                    const FIELDS: &'static [&'static str] = &["limit"];
+                    deserializer.deserialize_struct("Config", FIELDS,
+                                                    __Visitor::<__D>(::std::marker::PhantomData))
                 }
             }
-            struct __Visitor<__D: ::serde::de::Deserializer>(::std::marker::PhantomData<__D>);
-            impl <__D: 
-                  // FIXME
-                  ::serde::de::Deserializer> ::serde::de::Visitor for
-             __Visitor<__D> {
-                type
-                Value
-                =
-                Config;
-                #[inline]
-                fn visit_seq<__V>(&mut self, mut visitor: __V)
-                 -> ::std::result::Result<Config, __V::Error> where
-                 __V: ::serde::de::SeqVisitor {
-                    {
-                        let __field0 =
-                            match try!(visitor . visit (  )) {
-                                Some(value) => { value }
-                                None => {
-                                    return Err(::serde::de::Error::end_of_stream());
-                                }
-                            };
-                        try!(visitor . end (  ));
-                        Ok(Config{limit: __field0,})
-                    }
-                }
-                #[inline]
-                fn visit_map<__V>(&mut self, mut visitor: __V)
-                 -> ::std::result::Result<Config, __V::Error> where
-                 __V: ::serde::de::MapVisitor {
-                    {
-                        let mut __field0 = None;
-                        while let Some(key) = try!(visitor . visit_key (  )) {
-                            match key {
-                                __Field::__field0 => {
-                                    __field0 =
-                                        Some(try!({
-    struct __SerdeDeserializeWithStruct {
-        value: u64,
-    }
-    impl ::serde::de::Deserialize for __SerdeDeserializeWithStruct {
-        fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error>
-         where D: ::serde::de::Deserializer {
-            let value = try!(deserialize_limit ( deserializer ));
-            Ok(__SerdeDeserializeWithStruct{value: value,})
         }
-    }
-    let value: __SerdeDeserializeWithStruct =
-        try!(visitor . visit_value (  ));
-    Ok(value.value)
-}));
-                                }
-                                _ => {
-                                    try!(visitor . visit_value:: < :: serde::
-                                         de:: impls:: IgnoredAny > (  ));
-                                }
-                            }
-                        }
-                        let __field0 =
-                            match __field0 {
-                                Some(__field0) => __field0,
-                                None =>
-                                match visitor.missing_field("limit") {
-                                    ::std::result::Result::Ok(value) => value,
-                                    ::std::result::Result::Err(value) =>
-                                    return ::std::result::Result::Err(value),
-                                },
-                            };
-                        try!(visitor . end (  ));
-                        Ok(Config{limit: __field0,})
-                    }
-                }
-            }
-            const FIELDS: &'static [&'static str] = &["limit"];
-            deserializer.deserialize_struct("Config", FIELDS,
-                                            __Visitor::<__D>(::std::marker::PhantomData))
-        }
-    }
-}
+    };
 fn deserialize_limit<D>(d: &mut D) -> Result<u64, D::Error> where
  D: Deserializer {
     u64::deserialize(d)
