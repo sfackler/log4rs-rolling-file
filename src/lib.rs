@@ -222,6 +222,15 @@ appenders:
       limit: 1024
     roller:
       kind: delete
+  bar:
+    kind: rolling_file
+    trigger:
+      kind: size
+      limit: 1024
+    roller:
+      kind: fixed_window
+      base: 1
+      limit: 5
 loggers:
 appenders:
 ";
@@ -229,6 +238,7 @@ appenders:
         let mut deserializers = Deserializers::default();
         register(&mut deserializers);
 
-        Config::parse(config, Format::Yaml, &deserializers).unwrap();
+        let config = Config::parse(config, Format::Yaml, &deserializers).unwrap();
+        assert!(config.errors().is_empty());
     }
 }
