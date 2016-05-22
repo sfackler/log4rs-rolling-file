@@ -4,6 +4,9 @@ extern crate log4rs;
 extern crate serde;
 extern crate serde_value;
 
+#[cfg(test)]
+extern crate tempdir;
+
 use antidote::Mutex;
 use log4rs::append::Append;
 use log4rs::encode::{self, Encode};
@@ -22,6 +25,7 @@ use roll::Roll;
 use trigger::{LogFile, Trigger};
 use trigger::size::SizeTriggerDeserializer;
 use roll::delete::DeleteRollerDeserializer;
+use roll::fixed_window::FixedWindowRollerDeserializer;
 
 pub mod roll;
 pub mod trigger;
@@ -38,10 +42,12 @@ mod config;
 ///   * "size" -> `SizeTriggerDeserializer`
 /// * Rollers
 ///   * "delete" -> `DeleteRollerDeserializer`
+///   * "fixed_window" -> `FixedWindowRollerDeserializer`
 pub fn register(d: &mut Deserializers) {
     d.insert("rolling_file".to_owned(), Box::new(RollingFileAppenderDeserializer));
     d.insert("size".to_owned(), Box::new(SizeTriggerDeserializer));
     d.insert("delete".to_owned(), Box::new(DeleteRollerDeserializer));
+    d.insert("fixed_window".to_owned(), Box::new(FixedWindowRollerDeserializer));
 }
 
 struct LogWriter {

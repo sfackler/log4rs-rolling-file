@@ -12,3 +12,4 @@ serde-value = "0.2"
 
 [dev-dependencies]
 log4rs = { version = "0.4", features = ["yaml"] }
+tempdir = "0.3"

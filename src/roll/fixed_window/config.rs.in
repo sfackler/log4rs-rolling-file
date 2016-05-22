@@ -1,0 +1,6 @@
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Config {
+    pub pattern: String,
+    pub limit: u32,
+}
