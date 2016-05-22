@@ -2,5 +2,6 @@
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub pattern: String,
+    pub base: Option<u32>,
     pub limit: u32,
 }

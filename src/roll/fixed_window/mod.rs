@@ -14,25 +14,21 @@ mod config;
 #[derive(Debug)]
 pub struct FixedWindowRoller {
     pattern: String,
+    base: u32,
     limit: u32,
 }
 
 impl FixedWindowRoller {
-    pub fn new(pattern: &str, limit: u32) -> Result<FixedWindowRoller, Box<Error>> {
-        if !pattern.contains("{}") {
-            return Err("pattern does not contain `{}`".into());
+    pub fn builder() -> FixedWindowRollerBuilder {
+        FixedWindowRollerBuilder {
+            base: 0,
         }
-
-        Ok(FixedWindowRoller {
-            pattern: pattern.to_owned(),
-            limit: limit,
-        })
     }
 }
 
 impl Roll for FixedWindowRoller {
     fn roll(&self, file: &Path) -> Result<(), Box<Error>> {
-        for i in (0..self.limit).rev() {
+        for i in (self.base..self.limit + self.base).rev() {
             let src = self.pattern.replace("{}", &i.to_string());
             let dst = self.pattern.replace("{}", &(i + 1).to_string());
             try!(move_file(&src, &dst));
@@ -56,6 +52,29 @@ fn move_file<P>(src: P, dst: &str) -> io::Result<()>
     fs::copy(src.as_ref(), dst).and_then(|_| fs::remove_file(src.as_ref()))
 }
 
+pub struct FixedWindowRollerBuilder {
+    base: u32,
+}
+
+impl FixedWindowRollerBuilder {
+    pub fn base(mut self, base: u32) -> FixedWindowRollerBuilder {
+        self.base = base;
+        self
+    }
+
+    pub fn build(self, pattern: &str, limit: u32) -> Result<FixedWindowRoller, Box<Error>> {
+        if !pattern.contains("{}") {
+            return Err("pattern does not contain `{}`".into());
+        }
+
+        Ok(FixedWindowRoller {
+            pattern: pattern.to_owned(),
+            base: self.base,
+            limit: limit,
+        })
+    }
+}
+
 pub struct FixedWindowRollerDeserializer;
 
 impl Deserialize for FixedWindowRollerDeserializer {
@@ -66,8 +85,12 @@ impl Deserialize for FixedWindowRollerDeserializer {
                    _: &Deserializers)
                    -> Result<Box<Roll>, Box<Error>> {
         let config: Config = try!(config.deserialize_into());
+        let mut builder = FixedWindowRoller::builder();
+        if let Some(base) = config.base {
+            builder = builder.base(base);
+        }
 
-        Ok(Box::new(try!(FixedWindowRoller::new(&config.pattern, config.limit))))
+        Ok(Box::new(try!(builder.build(&config.pattern, config.limit))))
     }
 }
 
@@ -85,7 +108,9 @@ mod test {
         let dir = TempDir::new("rotation").unwrap();
 
         let base = dir.path().to_str().unwrap();
-        let roller = FixedWindowRoller::new(&format!("{}/foo.log.{{}}", base), 1).unwrap();
+        let roller = FixedWindowRoller::builder()
+                         .build(&format!("{}/foo.log.{{}}", base), 1)
+                         .unwrap();
 
         let file = dir.path().join("foo.log");
         File::create(&file).unwrap().write_all(b"file1").unwrap();
