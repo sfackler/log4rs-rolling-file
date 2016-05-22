@@ -30,10 +30,7 @@ pub struct DeleteRollerDeserializer;
 impl Deserialize for DeleteRollerDeserializer {
     type Trait = Roll;
 
-    fn deserialize(&self,
-                   config: Value,
-                   _: &Deserializers)
-                   -> Result<Box<Roll>, Box<Error>> {
+    fn deserialize(&self, config: Value, _: &Deserializers) -> Result<Box<Roll>, Box<Error>> {
         let _: Config = try!(config.deserialize_into());
         Ok(Box::new(DeleteRoller::new()))
     }

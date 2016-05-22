@@ -15,9 +15,7 @@ pub struct SizeTrigger {
 
 impl SizeTrigger {
     pub fn new(limit: u64) -> SizeTrigger {
-        SizeTrigger {
-            limit: limit,
-        }
+        SizeTrigger { limit: limit }
     }
 }
 
@@ -32,10 +30,7 @@ pub struct SizeTriggerDeserializer;
 impl Deserialize for SizeTriggerDeserializer {
     type Trait = Trigger;
 
-    fn deserialize(&self,
-                   config: Value,
-                   _: &Deserializers)
-                   -> Result<Box<Trigger>, Box<Error>> {
+    fn deserialize(&self, config: Value, _: &Deserializers) -> Result<Box<Trigger>, Box<Error>> {
         let config: Config = try!(config.deserialize_into());
         Ok(Box::new(SizeTrigger::new(config.limit)))
     }

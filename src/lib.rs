@@ -44,10 +44,12 @@ mod config;
 ///   * "delete" -> `DeleteRollerDeserializer`
 ///   * "fixed_window" -> `FixedWindowRollerDeserializer`
 pub fn register(d: &mut Deserializers) {
-    d.insert("rolling_file".to_owned(), Box::new(RollingFileAppenderDeserializer));
+    d.insert("rolling_file".to_owned(),
+             Box::new(RollingFileAppenderDeserializer));
     d.insert("size".to_owned(), Box::new(SizeTriggerDeserializer));
     d.insert("delete".to_owned(), Box::new(DeleteRollerDeserializer));
-    d.insert("fixed_window".to_owned(), Box::new(FixedWindowRollerDeserializer));
+    d.insert("fixed_window".to_owned(),
+             Box::new(FixedWindowRollerDeserializer));
 }
 
 struct LogWriter {

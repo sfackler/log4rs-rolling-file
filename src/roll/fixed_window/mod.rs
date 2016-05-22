@@ -20,9 +20,7 @@ pub struct FixedWindowRoller {
 
 impl FixedWindowRoller {
     pub fn builder() -> FixedWindowRollerBuilder {
-        FixedWindowRollerBuilder {
-            base: 0,
-        }
+        FixedWindowRollerBuilder { base: 0 }
     }
 }
 
@@ -45,7 +43,7 @@ fn move_file<P>(src: P, dst: &str) -> io::Result<()>
     match fs::rename(src.as_ref(), dst) {
         Ok(()) => return Ok(()),
         Err(ref e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
-        Err(_) => {},
+        Err(_) => {}
     }
 
     // fall back to a copy and delete if src and dst are on different mounts
@@ -80,10 +78,7 @@ pub struct FixedWindowRollerDeserializer;
 impl Deserialize for FixedWindowRollerDeserializer {
     type Trait = Roll;
 
-    fn deserialize(&self,
-                   config: Value,
-                   _: &Deserializers)
-                   -> Result<Box<Roll>, Box<Error>> {
+    fn deserialize(&self, config: Value, _: &Deserializers) -> Result<Box<Roll>, Box<Error>> {
         let config: Config = try!(config.deserialize_into());
         let mut builder = FixedWindowRoller::builder();
         if let Some(base) = config.base {
