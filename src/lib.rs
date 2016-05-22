@@ -1,3 +1,4 @@
+//! A rolling file appender for log4rs.
 extern crate antidote;
 extern crate log;
 extern crate log4rs;
@@ -72,6 +73,7 @@ impl io::Write for LogWriter {
 
 impl encode::Write for LogWriter {}
 
+/// An appender which archives log files in a configurable strategy.
 pub struct RollingFileAppender {
     writer: Mutex<Option<LogWriter>>,
     path: PathBuf,
@@ -133,6 +135,7 @@ impl Append for RollingFileAppender {
 }
 
 impl RollingFileAppender {
+    /// Creates a new `RollingFileAppenderBuilder`.
     pub fn builder() -> RollingFileAppenderBuilder {
         RollingFileAppenderBuilder {
             append: true,
@@ -141,22 +144,30 @@ impl RollingFileAppender {
     }
 }
 
+/// A builder for the `RollingFileAppender`.
 pub struct RollingFileAppenderBuilder {
     append: bool,
     encoder: Option<Box<Encode>>,
 }
 
 impl RollingFileAppenderBuilder {
+    /// Determines if the appender will append to or truncate the log file.
+    ///
+    /// Defaults to `true`.
     pub fn append(mut self, append: bool) -> RollingFileAppenderBuilder {
         self.append = append;
         self
     }
 
+    /// Sets the encoder used by the appender.
+    ///
+    /// Defaults to a `PatternEncoder` with the default pattern.
     pub fn encoder(mut self, encoder: Box<Encode>) -> RollingFileAppenderBuilder {
         self.encoder = Some(encoder);
         self
     }
 
+    /// Constructs a `RollingFileAppender`.
     pub fn build<P>(self, path: P, trigger: Box<Trigger>, roller: Box<Roll>) -> RollingFileAppender
         where P: AsRef<Path>
     {
@@ -171,6 +182,33 @@ impl RollingFileAppenderBuilder {
     }
 }
 
+/// A deserializer for the `RollingFileAppender`.
+///
+/// # Configuration
+///
+/// ```yaml
+/// kind: rolling_file
+///
+/// # The path of the log file. Required.
+/// path: log/foo.log
+///
+/// # The appender truncate or append to the log file if it already exists.
+/// # Defaults to `true`.
+/// append: true
+///
+/// # The encoder to use to format output. Defaults to `kind: pattern`.
+/// encoder:
+///   kind: pattern
+///
+/// # The trigger which will identify when the log should be rolled. Required.
+/// trigger:
+///   kind: size
+///   limit: 1024
+///
+/// # The roller which will archive the log file when it rolls over. Required.
+/// roller:
+///   kind: delete
+/// ```
 pub struct RollingFileAppenderDeserializer;
 
 impl Deserialize for RollingFileAppenderDeserializer {

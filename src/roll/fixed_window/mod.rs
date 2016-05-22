@@ -1,3 +1,5 @@
+//! The fixed-window roller.
+
 use log4rs::file::{Deserialize, Deserializers};
 use serde_value::Value;
 use std::error::Error;
@@ -11,14 +13,35 @@ use roll::fixed_window::config::Config;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
 
+/// A roller which maintains a fixed window of archived log files.
+///
+/// A `FixedWindowRoller` is configured with a filename pattern, a base index,
+/// and a maximum file count. Each achived log file is associated with a numeric
+/// index ordering it by age, starting at the base index. Archived log files are
+/// named by substituting all instances of `{}` with the file's index in the
+/// filename pattern.
+///
+/// For example, if the filename pattern is `archive/foo.{}.log`, the base index
+/// is 0 and the count is 2, the first log file will be archived as
+/// `archive/foo.0.log`. When the next log file is archived, `archive/foo.0.log`
+/// will be renamed to `archive/foo.1.log` and the new log file will be named
+/// `archive/foo.0.log`. When the third log file is archived,
+/// `archive/foo.1.log` will be deleted, `archive/foo.0.log` will be renamed to
+/// `archive/foo.1.log`, and the new log file will be renamed to
+/// `archive/foo.0.log`.
+///
+/// Note that this roller will have to rename every archived file every time the
+/// log rolls over. Performance may be negatively impacted by specifying a large
+/// count.
 #[derive(Debug)]
 pub struct FixedWindowRoller {
     pattern: String,
     base: u32,
-    limit: u32,
+    count: u32,
 }
 
 impl FixedWindowRoller {
+    /// Constructs a new `FixedWindowRollerBuilder`.
     pub fn builder() -> FixedWindowRollerBuilder {
         FixedWindowRollerBuilder { base: 0 }
     }
@@ -26,7 +49,12 @@ impl FixedWindowRoller {
 
 impl Roll for FixedWindowRoller {
     fn roll(&self, file: &Path) -> Result<(), Box<Error>> {
-        for i in (self.base..self.limit + self.base).rev() {
+        if self.count == 0 {
+            try!(fs::remove_file(file));
+            return Ok(());
+        }
+
+        for i in (self.base..self.base + self.count - 1).rev() {
             let src = self.pattern.replace("{}", &i.to_string());
             let dst = self.pattern.replace("{}", &(i + 1).to_string());
             try!(move_file(&src, &dst));
@@ -50,17 +78,25 @@ fn move_file<P>(src: P, dst: &str) -> io::Result<()>
     fs::copy(src.as_ref(), dst).and_then(|_| fs::remove_file(src.as_ref()))
 }
 
+/// A builder for the `FixedWindowRoller`.
 pub struct FixedWindowRollerBuilder {
     base: u32,
 }
 
 impl FixedWindowRollerBuilder {
+    /// Sets the base index for archived log files.
+    ///
+    /// Defaults to 0.
     pub fn base(mut self, base: u32) -> FixedWindowRollerBuilder {
         self.base = base;
         self
     }
 
-    pub fn build(self, pattern: &str, limit: u32) -> Result<FixedWindowRoller, Box<Error>> {
+    /// Constructs a new `FixedWindowRoller`.
+    ///
+    /// `pattern` must contain at least one instance of `{}`, all of which will
+    /// be replaced with an archived log file's index.
+    pub fn build(self, pattern: &str, count: u32) -> Result<FixedWindowRoller, Box<Error>> {
         if !pattern.contains("{}") {
             return Err("pattern does not contain `{}`".into());
         }
@@ -68,11 +104,28 @@ impl FixedWindowRollerBuilder {
         Ok(FixedWindowRoller {
             pattern: pattern.to_owned(),
             base: self.base,
-            limit: limit,
+            count: count,
         })
     }
 }
 
+/// A deserializer for the `FixedWindowRoller`.
+///
+/// # Configuration
+///
+/// ```yaml
+/// kind: fixed_window
+///
+/// # The filename pattern for archived logs. Must contain at least one `{}`.
+/// # Required.
+/// pattern: archive/foo.{}.log
+///
+/// # The maximum number of archived logs to maintain. Required.
+/// count: 5
+///
+/// # The base value for archived log indices. Defaults to 0.
+/// base: 1
+/// ```
 pub struct FixedWindowRollerDeserializer;
 
 impl Deserialize for FixedWindowRollerDeserializer {
@@ -85,7 +138,7 @@ impl Deserialize for FixedWindowRollerDeserializer {
             builder = builder.base(base);
         }
 
-        Ok(Box::new(try!(builder.build(&config.pattern, config.limit))))
+        Ok(Box::new(try!(builder.build(&config.pattern, config.count))))
     }
 }
 
@@ -104,7 +157,7 @@ mod test {
 
         let base = dir.path().to_str().unwrap();
         let roller = FixedWindowRoller::builder()
-                         .build(&format!("{}/foo.log.{{}}", base), 1)
+                         .build(&format!("{}/foo.log.{{}}", base), 2)
                          .unwrap();
 
         let file = dir.path().join("foo.log");

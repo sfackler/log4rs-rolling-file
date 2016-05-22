@@ -1,7 +1,7 @@
 pub struct Config {
     pub pattern: String,
     pub base: Option<u32>,
-    pub limit: u32,
+    pub count: u32,
 }
 #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
 const _IMPL_DESERIALIZE_FOR_Config: () =
@@ -48,7 +48,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                     match value {
                                         "pattern" => { Ok(__Field::__field0) }
                                         "base" => { Ok(__Field::__field1) }
-                                        "limit" => { Ok(__Field::__field2) }
+                                        "count" => { Ok(__Field::__field2) }
                                         _ =>
                                         Err(_serde::de::Error::unknown_field(value)),
                                     }
@@ -61,7 +61,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                             Ok(__Field::__field0)
                                         }
                                         b"base" => { Ok(__Field::__field1) }
-                                        b"limit" => { Ok(__Field::__field2) }
+                                        b"count" => { Ok(__Field::__field2) }
                                         _ => {
                                             let value =
                                                 ::std::string::String::from_utf8_lossy(value);
@@ -113,7 +113,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                 try!(visitor . end (  ));
                                 Ok(Config{pattern: __field0,
                                           base: __field1,
-                                          limit: __field2,})
+                                          count: __field2,})
                             }
                         }
                         #[inline]
@@ -152,7 +152,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         __Field::__field2 => {
                                             if __field2.is_some() {
                                                 return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("limit"));
+                                                               _serde::de::Error>::duplicate_field("count"));
                                             }
                                             __field2 =
                                                 Some(try!(visitor .
@@ -179,18 +179,18 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                     match __field2 {
                                         Some(__field2) => __field2,
                                         None =>
-                                        try!(visitor . missing_field ( "limit"
+                                        try!(visitor . missing_field ( "count"
                                              )),
                                     };
                                 try!(visitor . end (  ));
                                 Ok(Config{pattern: __field0,
                                           base: __field1,
-                                          limit: __field2,})
+                                          count: __field2,})
                             }
                         }
                     }
                     const FIELDS: &'static [&'static str] =
-                        &["pattern", "base", "limit"];
+                        &["pattern", "base", "count"];
                     deserializer.deserialize_struct("Config", FIELDS,
                                                     __Visitor::<__D>(::std::marker::PhantomData))
                 }

@@ -1,3 +1,5 @@
+//! The size trigger.
+
 use log4rs::file::{Deserialize, Deserializers};
 use serde_value::Value;
 use std::error::Error;
@@ -8,12 +10,15 @@ use trigger::size::config::Config;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
 
+/// A trigger which rolls the log once it has passed a certain size.
 #[derive(Debug)]
 pub struct SizeTrigger {
     limit: u64,
 }
 
 impl SizeTrigger {
+    /// Returns a new trigger which rolls the log once it has passed the
+    /// specified size in bytes.
     pub fn new(limit: u64) -> SizeTrigger {
         SizeTrigger { limit: limit }
     }
@@ -25,6 +30,16 @@ impl Trigger for SizeTrigger {
     }
 }
 
+/// A deserializer for the `SizeTrigger`.
+///
+/// # Configuration
+///
+/// ```yaml
+/// kind: size
+///
+/// # The size limit in bytes. Required.
+/// limit: 1024
+/// ```
 pub struct SizeTriggerDeserializer;
 
 impl Deserialize for SizeTriggerDeserializer {

@@ -1,3 +1,5 @@
+//! The delete roller.
+
 use log4rs::file::{Deserialize, Deserializers};
 use serde_value::Value;
 use std::error::Error;
@@ -10,6 +12,7 @@ use roll::delete::config::Config;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
 
+/// A roller which deletes the log file.
 #[derive(Debug)]
 pub struct DeleteRoller(());
 
@@ -20,11 +23,19 @@ impl Roll for DeleteRoller {
 }
 
 impl DeleteRoller {
+    /// Returns a new `DeleteRoller`.
     pub fn new() -> DeleteRoller {
         DeleteRoller(())
     }
 }
 
+/// A deserializer for the `DeleteRoller`.
+///
+/// # Configuration
+///
+/// ```yaml
+/// kind: delete
+/// ```
 pub struct DeleteRollerDeserializer;
 
 impl Deserialize for DeleteRollerDeserializer {
