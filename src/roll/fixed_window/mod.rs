@@ -1,0 +1,195 @@
+//! The fixed-window roller.
+
+use log4rs::file::{Deserialize, Deserializers};
+use serde_value::Value;
+use std::error::Error;
+use std::fs;
+use std::io;
+use std::path::Path;
+
+use roll::Roll;
+use roll::fixed_window::config::Config;
+
+#[cfg_attr(rustfmt, rustfmt_skip)]
+mod config;
+
+/// A roller which maintains a fixed window of archived log files.
+///
+/// A `FixedWindowRoller` is configured with a filename pattern, a base index,
+/// and a maximum file count. Each achived log file is associated with a numeric
+/// index ordering it by age, starting at the base index. Archived log files are
+/// named by substituting all instances of `{}` with the file's index in the
+/// filename pattern.
+///
+/// For example, if the filename pattern is `archive/foo.{}.log`, the base index
+/// is 0 and the count is 2, the first log file will be archived as
+/// `archive/foo.0.log`. When the next log file is archived, `archive/foo.0.log`
+/// will be renamed to `archive/foo.1.log` and the new log file will be named
+/// `archive/foo.0.log`. When the third log file is archived,
+/// `archive/foo.1.log` will be deleted, `archive/foo.0.log` will be renamed to
+/// `archive/foo.1.log`, and the new log file will be renamed to
+/// `archive/foo.0.log`.
+///
+/// Note that this roller will have to rename every archived file every time the
+/// log rolls over. Performance may be negatively impacted by specifying a large
+/// count.
+#[derive(Debug)]
+pub struct FixedWindowRoller {
+    pattern: String,
+    base: u32,
+    count: u32,
+}
+
+impl FixedWindowRoller {
+    /// Constructs a new `FixedWindowRollerBuilder`.
+    pub fn builder() -> FixedWindowRollerBuilder {
+        FixedWindowRollerBuilder { base: 0 }
+    }
+}
+
+impl Roll for FixedWindowRoller {
+    fn roll(&self, file: &Path) -> Result<(), Box<Error>> {
+        if self.count == 0 {
+            try!(fs::remove_file(file));
+            return Ok(());
+        }
+
+        for i in (self.base..self.base + self.count - 1).rev() {
+            let src = self.pattern.replace("{}", &i.to_string());
+            let dst = self.pattern.replace("{}", &(i + 1).to_string());
+            try!(move_file(&src, &dst));
+        }
+
+        move_file(file, &self.pattern.replace("{}", "0")).map_err(Into::into)
+    }
+}
+
+fn move_file<P>(src: P, dst: &str) -> io::Result<()>
+    where P: AsRef<Path>
+{
+    // first try a rename
+    match fs::rename(src.as_ref(), dst) {
+        Ok(()) => return Ok(()),
+        Err(ref e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
+        Err(_) => {}
+    }
+
+    // fall back to a copy and delete if src and dst are on different mounts
+    fs::copy(src.as_ref(), dst).and_then(|_| fs::remove_file(src.as_ref()))
+}
+
+/// A builder for the `FixedWindowRoller`.
+pub struct FixedWindowRollerBuilder {
+    base: u32,
+}
+
+impl FixedWindowRollerBuilder {
+    /// Sets the base index for archived log files.
+    ///
+    /// Defaults to 0.
+    pub fn base(mut self, base: u32) -> FixedWindowRollerBuilder {
+        self.base = base;
+        self
+    }
+
+    /// Constructs a new `FixedWindowRoller`.
+    ///
+    /// `pattern` must contain at least one instance of `{}`, all of which will
+    /// be replaced with an archived log file's index.
+    pub fn build(self, pattern: &str, count: u32) -> Result<FixedWindowRoller, Box<Error>> {
+        if !pattern.contains("{}") {
+            return Err("pattern does not contain `{}`".into());
+        }
+
+        Ok(FixedWindowRoller {
+            pattern: pattern.to_owned(),
+            base: self.base,
+            count: count,
+        })
+    }
+}
+
+/// A deserializer for the `FixedWindowRoller`.
+///
+/// # Configuration
+///
+/// ```yaml
+/// kind: fixed_window
+///
+/// # The filename pattern for archived logs. Must contain at least one `{}`.
+/// # Required.
+/// pattern: archive/foo.{}.log
+///
+/// # The maximum number of archived logs to maintain. Required.
+/// count: 5
+///
+/// # The base value for archived log indices. Defaults to 0.
+/// base: 1
+/// ```
+pub struct FixedWindowRollerDeserializer;
+
+impl Deserialize for FixedWindowRollerDeserializer {
+    type Trait = Roll;
+
+    fn deserialize(&self, config: Value, _: &Deserializers) -> Result<Box<Roll>, Box<Error>> {
+        let config: Config = try!(config.deserialize_into());
+        let mut builder = FixedWindowRoller::builder();
+        if let Some(base) = config.base {
+            builder = builder.base(base);
+        }
+
+        Ok(Box::new(try!(builder.build(&config.pattern, config.count))))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use tempdir::TempDir;
+    use std::fs::File;
+    use std::io::{Read, Write};
+
+    use roll::Roll;
+    use super::*;
+
+    #[test]
+    fn rotation() {
+        let dir = TempDir::new("rotation").unwrap();
+
+        let base = dir.path().to_str().unwrap();
+        let roller = FixedWindowRoller::builder()
+                         .build(&format!("{}/foo.log.{{}}", base), 2)
+                         .unwrap();
+
+        let file = dir.path().join("foo.log");
+        File::create(&file).unwrap().write_all(b"file1").unwrap();
+
+        roller.roll(&file).unwrap();
+        assert!(!file.exists());
+        let mut contents = vec![];
+        File::open(dir.path().join("foo.log.0")).unwrap().read_to_end(&mut contents).unwrap();
+        assert_eq!(contents, b"file1");
+
+        File::create(&file).unwrap().write_all(b"file2").unwrap();
+
+        roller.roll(&file).unwrap();
+        assert!(!file.exists());
+        contents.clear();
+        File::open(dir.path().join("foo.log.1")).unwrap().read_to_end(&mut contents).unwrap();
+        assert_eq!(contents, b"file1");
+        contents.clear();
+        File::open(dir.path().join("foo.log.0")).unwrap().read_to_end(&mut contents).unwrap();
+        assert_eq!(contents, b"file2");
+
+        File::create(&file).unwrap().write_all(b"file3").unwrap();
+
+        roller.roll(&file).unwrap();
+        assert!(!file.exists());
+        contents.clear();
+        assert!(!dir.path().join("foo.log.2").exists());
+        File::open(dir.path().join("foo.log.1")).unwrap().read_to_end(&mut contents).unwrap();
+        assert_eq!(contents, b"file2");
+        contents.clear();
+        File::open(dir.path().join("foo.log.0")).unwrap().read_to_end(&mut contents).unwrap();
+        assert_eq!(contents, b"file3");
+    }
+}
