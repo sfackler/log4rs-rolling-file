@@ -2,6 +2,10 @@
 name = "log4rs-rolling-file"
 version = "0.1.0"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
+description = "A rolling file appender for log4rs"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/sfackler/log4rs-rolling-file"
+documentation = "https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.0/log4rs"
 
 [dependencies]
 antidote = "0.1"

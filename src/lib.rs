@@ -14,6 +14,8 @@
 //!
 //! For example, you may configure an appender to roll the log over once it
 //! reaches 50 megabytes, and to preserve the last 10 log files.
+#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.0")]
+#![warn(missing_docs)]
 extern crate antidote;
 extern crate log;
 extern crate log4rs;
