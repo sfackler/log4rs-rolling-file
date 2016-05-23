@@ -1,4 +1,19 @@
 //! A rolling file appender for log4rs.
+//!
+//! Logging directly to a file can be a dangerous proposition for long running
+//! processes. You wouldn't want to start a server up and find out a couple
+//! weeks later that the disk is filled with hundreds of gigabytes of logs! A
+//! rolling file appender alleviates these issues by limiting the amount of log
+//! data that's preserved.
+//!
+//! Like a normal file appender, a rolling file appender is configured with the
+//! location of its log file and the encoder which formats log events written
+//! to it. In addition, it holds "trigger" and "roller" objects. The trigger
+//! determines when the current log file should roll over and be replaced with
+//! a new one. The roller determines what happens to the old log file.
+//!
+//! For example, you may configure an appender to roll the log over once it
+//! reaches 50 megabytes, and to preserve the last 10 log files.
 extern crate antidote;
 extern crate log;
 extern crate log4rs;
