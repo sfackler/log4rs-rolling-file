@@ -279,7 +279,7 @@ appenders:
     kind: rolling_file
     trigger:
       kind: size
-      limit: 1024
+      limit: 5 mb
     roller:
       kind: fixed_window
       base: 1

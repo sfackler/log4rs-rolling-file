@@ -38,7 +38,7 @@ impl Trigger for SizeTrigger {
 /// kind: size
 ///
 /// # The size limit in bytes. Required.
-/// limit: 1024
+/// limit: 10 mb
 /// ```
 pub struct SizeTriggerDeserializer;
 
