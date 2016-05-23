@@ -37,7 +37,9 @@ impl Trigger for SizeTrigger {
 /// ```yaml
 /// kind: size
 ///
-/// # The size limit in bytes. Required.
+/// # The size limit in bytes. The following units are supported (case insensitive): 
+/// # "b", "kb", "kib", "mb", "mib", "gb", "gib", "tb", "tib". The unit defaults to
+/// # bytes if not specified. Required.
 /// limit: 10 mb
 /// ```
 pub struct SizeTriggerDeserializer;
