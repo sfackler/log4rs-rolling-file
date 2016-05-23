@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["size","The size trigger."]],"struct":[["LogFile","Information about the active log file."]],"trait":[["Trigger","A trait which identifies if the active log file should be rolled over."]]});
