@@ -33,7 +33,7 @@ use log4rs::file::{Deserialize, Deserializers};
 use log::LogRecord;
 use std::error::Error;
 use std::fmt;
-use std::fs::{File, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, Write, BufWriter};
 use std::path::{Path, PathBuf};
 use serde_value::Value;
@@ -117,6 +117,10 @@ impl Append for RollingFileAppender {
         let mut writer = self.writer.lock();
 
         if writer.is_none() {
+            if let Some(parent) = self.path.parent() {
+                try!(fs::create_dir_all(parent));
+            }
+
             let file = try!(OpenOptions::new()
                                 .write(true)
                                 .append(true)

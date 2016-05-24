@@ -54,9 +54,27 @@ impl Roll for FixedWindowRoller {
             return Ok(());
         }
 
+        let dst_0 = self.pattern.replace("{}", "0");
+
+        if let Some(parent) = Path::new(&dst_0).parent() {
+            try!(fs::create_dir_all(parent));
+        }
+
+        let parent_varies = match (Path::new(&dst_0).parent(), Path::new(&self.pattern).parent()) {
+            (Some(a), Some(b)) => a != b,
+            _ => false // Only case that can actually happen is (None, None)
+        };
+
         for i in (self.base..self.base + self.count - 1).rev() {
             let src = self.pattern.replace("{}", &i.to_string());
             let dst = self.pattern.replace("{}", &(i + 1).to_string());
+
+            if parent_varies {
+                if let Some(parent) = Path::new(&dst).parent() {
+                    try!(fs::create_dir_all(parent));
+                }
+            }
+
             try!(move_file(&src, &dst));
         }
 
@@ -191,5 +209,57 @@ mod test {
         contents.clear();
         File::open(dir.path().join("foo.log.0")).unwrap().read_to_end(&mut contents).unwrap();
         assert_eq!(contents, b"file3");
+    }
+
+    #[test]
+    fn create_archive_unvaried() {
+        let dir = TempDir::new("create_archive_unvaried").unwrap();
+
+        let base = dir.path().join("log").join("archive");
+        let pattern = base.join("foo.{}.log");
+        let roller = FixedWindowRoller::builder()
+                         .build(pattern.to_str().unwrap(), 2)
+                         .unwrap();
+
+        let file = dir.path().join("foo.log");
+        File::create(&file).unwrap().write_all(b"file").unwrap();
+
+        roller.roll(&file).unwrap();
+
+        assert!(base.join("foo.0.log").exists());
+
+        let file = dir.path().join("foo.log");
+        File::create(&file).unwrap().write_all(b"file2").unwrap();
+
+        roller.roll(&file).unwrap();
+
+        assert!(base.join("foo.0.log").exists());
+        assert!(base.join("foo.1.log").exists());
+    }
+
+    #[test]
+    fn create_archive_varied() {
+        let dir = TempDir::new("create_archive_unvaried").unwrap();
+
+        let base = dir.path().join("log").join("archive");
+        let pattern = base.join("{}").join("foo.log");
+        let roller = FixedWindowRoller::builder()
+                         .build(pattern.to_str().unwrap(), 2)
+                         .unwrap();
+
+        let file = dir.path().join("foo.log");
+        File::create(&file).unwrap().write_all(b"file").unwrap();
+
+        roller.roll(&file).unwrap();
+
+        assert!(base.join("0").join("foo.log").exists());
+
+        let file = dir.path().join("foo.log");
+        File::create(&file).unwrap().write_all(b"file2").unwrap();
+
+        roller.roll(&file).unwrap();
+
+        assert!(base.join("0").join("foo.log").exists());
+        assert!(base.join("1").join("foo.log").exists());
     }
 }
