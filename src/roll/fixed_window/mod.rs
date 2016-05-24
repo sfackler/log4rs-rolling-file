@@ -60,6 +60,8 @@ impl Roll for FixedWindowRoller {
             try!(fs::create_dir_all(parent));
         }
 
+        // In the common case, all of the archived files will be in the same
+        // directory, so avoid extra filesystem calls in that case.
         let parent_varies = match (Path::new(&dst_0).parent(), Path::new(&self.pattern).parent()) {
             (Some(a), Some(b)) => a != b,
             _ => false // Only case that can actually happen is (None, None)
