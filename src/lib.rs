@@ -22,6 +22,9 @@ extern crate log4rs;
 extern crate serde;
 extern crate serde_value;
 
+#[cfg(feature = "gzip")]
+extern crate flate2;
+
 #[cfg(test)]
 extern crate tempdir;
 

@@ -13,6 +13,38 @@ use roll::fixed_window::config::Config;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
 
+#[derive(Debug)]
+enum Compression {
+    None,
+    #[cfg(feature = "gzip")]
+    Gzip,
+}
+
+impl Compression {
+    fn compress(&self, src: &Path, dst: &str) -> io::Result<()> {
+        match *self {
+            Compression::None => move_file(src, dst),
+            #[cfg(feature = "gzip")]
+            Compression::Gzip => {
+                use flate2;
+                use flate2::write::GzEncoder;
+                use std::fs::File;
+
+                let mut i = try!(File::open(src));
+
+                let o = try!(File::create(dst));
+                let mut o = GzEncoder::new(o, flate2::Compression::Default);
+
+                try!(io::copy(&mut i, &mut o));
+                drop(try!(o.finish()));
+                drop(i); // needs to happen before remove_file call on Windows
+
+                fs::remove_file(src)
+            }
+        }
+    }
+}
+
 /// A roller which maintains a fixed window of archived log files.
 ///
 /// A `FixedWindowRoller` is configured with a filename pattern, a base index,
@@ -30,12 +62,16 @@ mod config;
 /// `archive/foo.1.log`, and the new log file will be renamed to
 /// `archive/foo.0.log`.
 ///
+/// If the file extension of the pattern is `.gz` and the `gzip` Cargo feature
+/// is enabled, the archive files will be gzip-compressed.
+///
 /// Note that this roller will have to rename every archived file every time the
 /// log rolls over. Performance may be negatively impacted by specifying a large
 /// count.
 #[derive(Debug)]
 pub struct FixedWindowRoller {
     pattern: String,
+    compression: Compression,
     base: u32,
     count: u32,
 }
@@ -80,7 +116,7 @@ impl Roll for FixedWindowRoller {
             try!(move_file(&src, &dst));
         }
 
-        move_file(file, &self.pattern.replace("{}", "0")).map_err(Into::into)
+        self.compression.compress(file, &self.pattern.replace("{}", "0")).map_err(Into::into)
     }
 }
 
@@ -121,8 +157,19 @@ impl FixedWindowRollerBuilder {
             return Err("pattern does not contain `{}`".into());
         }
 
+        let compression = match Path::new(pattern).extension() {
+            #[cfg(feature = "gzip")]
+            Some(e) if e == "gz" => Compression::Gzip,
+            #[cfg(not(feature = "gzip"))]
+            Some(e) if e == "gz" => {
+                return Err("gzip compression requires the `gzip` feature".into());
+            }
+            _ => Compression::None,
+        };
+
         Ok(FixedWindowRoller {
             pattern: pattern.to_owned(),
+            compression: compression,
             base: self.base,
             count: count,
         })
@@ -167,6 +214,7 @@ mod test {
     use tempdir::TempDir;
     use std::fs::File;
     use std::io::{Read, Write};
+    use std::process::Command;
 
     use roll::Roll;
     use super::*;
@@ -263,5 +311,42 @@ mod test {
 
         assert!(base.join("0").join("foo.log").exists());
         assert!(base.join("1").join("foo.log").exists());
+    }
+
+    #[test]
+    #[cfg_attr(feature = "gzip", ignore)]
+    fn unsupported_gzip() {
+        let dir = TempDir::new("unsupported_gzip").unwrap();
+
+        let pattern = dir.path().join("{}.gz");
+        assert!(FixedWindowRoller::builder().build(pattern.to_str().unwrap(), 2).is_err());
+    }
+
+    #[test]
+    #[cfg_attr(not(feature = "gzip"), ignore)]
+    fn supported_gzip() {
+        let dir = TempDir::new("supported_gzip").unwrap();
+
+        let pattern = dir.path().join("{}.gz");
+        let roller = FixedWindowRoller::builder().build(pattern.to_str().unwrap(), 2).unwrap();
+
+        let contents = (0..10000).map(|i| i as u8).collect::<Vec<_>>();
+
+        let file = dir.path().join("foo.log");
+        File::create(&file).unwrap().write_all(&contents).unwrap();
+
+        roller.roll(&file).unwrap();
+
+        assert!(Command::new("gunzip")
+            .arg(dir.path().join("0.gz"))
+            .status()
+            .unwrap()
+            .success());
+
+        let mut file = File::open(dir.path().join("0")).unwrap();
+        let mut actual = vec![];
+        file.read_to_end(&mut actual).unwrap();
+
+        assert_eq!(contents, actual);
     }
 }
