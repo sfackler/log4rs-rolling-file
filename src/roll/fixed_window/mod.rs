@@ -100,7 +100,7 @@ impl Roll for FixedWindowRoller {
         // directory, so avoid extra filesystem calls in that case.
         let parent_varies = match (Path::new(&dst_0).parent(), Path::new(&self.pattern).parent()) {
             (Some(a), Some(b)) => a != b,
-            _ => false // Only case that can actually happen is (None, None)
+            _ => false, // Only case that can actually happen is (None, None)
         };
 
         for i in (self.base..self.base + self.count - 1).rev() {
@@ -341,10 +341,10 @@ mod test {
         roller.roll(&file).unwrap();
 
         assert!(Command::new("gunzip")
-            .arg(dir.path().join("0.gz"))
-            .status()
-            .unwrap()
-            .success());
+                    .arg(dir.path().join("0.gz"))
+                    .status()
+                    .unwrap()
+                    .success());
 
         let mut file = File::open(dir.path().join("0")).unwrap();
         let mut actual = vec![];
