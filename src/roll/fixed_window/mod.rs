@@ -152,6 +152,9 @@ impl FixedWindowRollerBuilder {
     ///
     /// `pattern` must contain at least one instance of `{}`, all of which will
     /// be replaced with an archived log file's index.
+    ///
+    /// If the file extension of the pattern is `.gz` and the `gzip` Cargo
+    /// feature is enabled, the archive files will be gzip-compressed.
     pub fn build(self, pattern: &str, count: u32) -> Result<FixedWindowRoller, Box<Error>> {
         if !pattern.contains("{}") {
             return Err("pattern does not contain `{}`".into());
