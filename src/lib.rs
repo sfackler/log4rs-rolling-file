@@ -227,7 +227,7 @@ impl RollingFileAppenderBuilder {
 /// # The trigger which will identify when the log should be rolled. Required.
 /// trigger:
 ///   kind: size
-///   limit: 1024
+///   limit: 10 mb
 ///
 /// # The roller which will archive the log file when it rolls over. Required.
 /// roller:
