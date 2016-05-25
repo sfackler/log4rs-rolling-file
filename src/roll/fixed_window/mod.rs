@@ -186,6 +186,8 @@ impl FixedWindowRollerBuilder {
 /// kind: fixed_window
 ///
 /// # The filename pattern for archived logs. Must contain at least one `{}`.
+/// # If the file extension of the pattern is `.gz` and the `gzip` Cargo feature
+/// # is enabled, the archive files will be gzip-compressed.
 /// # Required.
 /// pattern: archive/foo.{}.log
 ///
