@@ -216,8 +216,8 @@ impl RollingFileAppenderBuilder {
 /// # The path of the log file. Required.
 /// path: log/foo.log
 ///
-/// # The appender truncate or append to the log file if it already exists.
-/// # Defaults to `true`.
+/// # Specifies if the appender should append to or truncate the log file if it
+/// # already exists. Defaults to `true`.
 /// append: true
 ///
 /// # The encoder to use to format output. Defaults to `kind: pattern`.

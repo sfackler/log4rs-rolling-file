@@ -86,8 +86,7 @@ impl FixedWindowRoller {
 impl Roll for FixedWindowRoller {
     fn roll(&self, file: &Path) -> Result<(), Box<Error>> {
         if self.count == 0 {
-            try!(fs::remove_file(file));
-            return Ok(());
+            return fs::remove_file(file).map_err(Into::into);
         }
 
         let dst_0 = self.pattern.replace("{}", "0");
