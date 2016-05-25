@@ -14,13 +14,16 @@
 //!
 //! For example, you may configure an appender to roll the log over once it
 //! reaches 50 megabytes, and to preserve the last 10 log files.
-#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.0")]
+#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.1")]
 #![warn(missing_docs)]
 extern crate antidote;
 extern crate log;
 extern crate log4rs;
 extern crate serde;
 extern crate serde_value;
+
+#[cfg(feature = "gzip")]
+extern crate flate2;
 
 #[cfg(test)]
 extern crate tempdir;
@@ -33,7 +36,7 @@ use log4rs::file::{Deserialize, Deserializers};
 use log::LogRecord;
 use std::error::Error;
 use std::fmt;
-use std::fs::{File, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, Write, BufWriter};
 use std::path::{Path, PathBuf};
 use serde_value::Value;
@@ -117,6 +120,10 @@ impl Append for RollingFileAppender {
         let mut writer = self.writer.lock();
 
         if writer.is_none() {
+            if let Some(parent) = self.path.parent() {
+                try!(fs::create_dir_all(parent));
+            }
+
             let file = try!(OpenOptions::new()
                                 .write(true)
                                 .append(true)
@@ -209,8 +216,8 @@ impl RollingFileAppenderBuilder {
 /// # The path of the log file. Required.
 /// path: log/foo.log
 ///
-/// # The appender truncate or append to the log file if it already exists.
-/// # Defaults to `true`.
+/// # Specifies if the appender should append to or truncate the log file if it
+/// # already exists. Defaults to `true`.
 /// append: true
 ///
 /// # The encoder to use to format output. Defaults to `kind: pattern`.
@@ -220,7 +227,7 @@ impl RollingFileAppenderBuilder {
 /// # The trigger which will identify when the log should be rolled. Required.
 /// trigger:
 ///   kind: size
-///   limit: 1024
+///   limit: 10 mb
 ///
 /// # The roller which will archive the log file when it rolls over. Required.
 /// roller:
