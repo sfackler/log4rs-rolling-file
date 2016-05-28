@@ -11,7 +11,7 @@ documentation = "https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.1/log4r
 gzip = ["flate2"]
 
 [dependencies]
-antidote = "0.1"
+antidote = "1.0"
 log = "0.3"
 log4rs = "0.4"
 serde = "0.7"
