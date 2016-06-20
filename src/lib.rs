@@ -279,6 +279,7 @@ mod test {
 appenders:
   foo:
     kind: rolling_file
+    path: foo.log
     trigger:
       kind: size
       limit: 1024
@@ -286,21 +287,22 @@ appenders:
       kind: delete
   bar:
     kind: rolling_file
+    path: foo.log
     trigger:
       kind: size
       limit: 5 mb
     roller:
       kind: fixed_window
+      pattern: 'foo.log.{}'
       base: 1
-      limit: 5
-loggers:
-appenders:
+      count: 5
 ";
 
         let mut deserializers = Deserializers::default();
         register(&mut deserializers);
 
         let config = Config::parse(config, Format::Yaml, &deserializers).unwrap();
+        println!("{:?}", config.errors());
         assert!(config.errors().is_empty());
     }
 }
