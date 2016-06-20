@@ -126,7 +126,7 @@ impl Append for RollingFileAppender {
 
             let file = try!(OpenOptions::new()
                                 .write(true)
-                                .append(true)
+                                .append(self.append)
                                 .truncate(!self.append)
                                 .create(true)
                                 .open(&self.path));
