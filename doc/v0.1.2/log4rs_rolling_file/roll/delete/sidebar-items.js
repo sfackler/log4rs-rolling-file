@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DeleteRoller","A roller which deletes the log file."],["DeleteRollerDeserializer","A deserializer for the `DeleteRoller`."]]});
