@@ -14,7 +14,7 @@
 //!
 //! For example, you may configure an appender to roll the log over once it
 //! reaches 50 megabytes, and to preserve the last 10 log files.
-#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.1")]
+#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.2")]
 #![warn(missing_docs)]
 extern crate antidote;
 extern crate log;
@@ -126,7 +126,7 @@ impl Append for RollingFileAppender {
 
             let file = try!(OpenOptions::new()
                                 .write(true)
-                                .append(true)
+                                .append(self.append)
                                 .truncate(!self.append)
                                 .create(true)
                                 .open(&self.path));
@@ -279,6 +279,7 @@ mod test {
 appenders:
   foo:
     kind: rolling_file
+    path: foo.log
     trigger:
       kind: size
       limit: 1024
@@ -286,21 +287,22 @@ appenders:
       kind: delete
   bar:
     kind: rolling_file
+    path: foo.log
     trigger:
       kind: size
       limit: 5 mb
     roller:
       kind: fixed_window
+      pattern: 'foo.log.{}'
       base: 1
-      limit: 5
-loggers:
-appenders:
+      count: 5
 ";
 
         let mut deserializers = Deserializers::default();
         register(&mut deserializers);
 
         let config = Config::parse(config, Format::Yaml, &deserializers).unwrap();
+        println!("{:?}", config.errors());
         assert!(config.errors().is_empty());
     }
 }
