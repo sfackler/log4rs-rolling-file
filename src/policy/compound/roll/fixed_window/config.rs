@@ -8,7 +8,9 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
     {
         extern crate serde as _serde;
         #[automatically_derived]
-        impl _serde::de::Deserialize for Config {
+        impl _serde::de::Deserialize for Config where
+         String: _serde::de::Deserialize,
+         Option<u32>: _serde::de::Deserialize, u32: _serde::de::Deserialize {
             fn deserialize<__D>(deserializer: &mut __D)
              -> ::std::result::Result<Config, __D::Error> where
              __D: _serde::de::Deserializer {
@@ -74,9 +76,14 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                                                                             ::std::marker::PhantomData,})
                         }
                     }
-                    struct __Visitor<__D: _serde::de::Deserializer>(::std::marker::PhantomData<__D>);
+                    struct __Visitor<__D: _serde::de::Deserializer>(::std::marker::PhantomData<__D>)
+                           where String: _serde::de::Deserialize,
+                           Option<u32>: _serde::de::Deserialize,
+                           u32: _serde::de::Deserialize;
                     impl <__D: _serde::de::Deserializer> _serde::de::Visitor
-                     for __Visitor<__D> {
+                     for __Visitor<__D> where String: _serde::de::Deserialize,
+                     Option<u32>: _serde::de::Deserialize,
+                     u32: _serde::de::Deserialize {
                         type
                         Value
                         =
@@ -91,7 +98,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                                 )) {
                                         Some(value) => { value }
                                         None => {
-                                            return Err(_serde::de::Error::end_of_stream());
+                                            try!(visitor . end (  ));
+                                            return Err(_serde::de::Error::invalid_length(0usize));
                                         }
                                     };
                                 let __field1 =
@@ -99,7 +107,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                                Option<u32> > (  )) {
                                         Some(value) => { value }
                                         None => {
-                                            return Err(_serde::de::Error::end_of_stream());
+                                            try!(visitor . end (  ));
+                                            return Err(_serde::de::Error::invalid_length(1usize));
                                         }
                                     };
                                 let __field2 =
@@ -107,7 +116,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                                )) {
                                         Some(value) => { value }
                                         None => {
-                                            return Err(_serde::de::Error::end_of_stream());
+                                            try!(visitor . end (  ));
+                                            return Err(_serde::de::Error::invalid_length(2usize));
                                         }
                                     };
                                 try!(visitor . end (  ));
@@ -161,6 +171,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         }
                                     }
                                 }
+                                try!(visitor . end (  ));
                                 let __field0 =
                                     match __field0 {
                                         Some(__field0) => __field0,
@@ -182,7 +193,6 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         try!(visitor . missing_field ( "count"
                                              )),
                                     };
-                                try!(visitor . end (  ));
                                 Ok(Config{pattern: __field0,
                                           base: __field1,
                                           count: __field2,})

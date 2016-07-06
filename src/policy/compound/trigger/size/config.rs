@@ -121,7 +121,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                           } {
                                         Some(value) => { value }
                                         None => {
-                                            return Err(_serde::de::Error::end_of_stream());
+                                            try!(visitor . end (  ));
+                                            return Err(_serde::de::Error::invalid_length(0usize));
                                         }
                                     };
                                 try!(visitor . end (  ));
@@ -180,6 +181,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         }
                                     }
                                 }
+                                try!(visitor . end (  ));
                                 let __field0 =
                                     match __field0 {
                                         Some(__field0) => __field0,
@@ -187,7 +189,6 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         return Err(<__V::Error as
                                                        _serde::de::Error>::missing_field("limit")),
                                     };
-                                try!(visitor . end (  ));
                                 Ok(Config{limit: __field0,})
                             }
                         }
