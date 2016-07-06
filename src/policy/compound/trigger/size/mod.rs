@@ -4,8 +4,9 @@ use log4rs::file::{Deserialize, Deserializers};
 use serde_value::Value;
 use std::error::Error;
 
-use trigger::{LogFile, Trigger};
-use trigger::size::config::Config;
+use LogFile;
+use policy::compound::trigger::Trigger;
+use policy::compound::trigger::size::config::Config;
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;

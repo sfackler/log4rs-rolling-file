@@ -7,8 +7,8 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use roll::Roll;
-use roll::fixed_window::config::Config;
+use policy::compound::roll::Roll;
+use policy::compound::roll::fixed_window::config::Config;
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
@@ -220,7 +220,7 @@ mod test {
     use std::io::{Read, Write};
     use std::process::Command;
 
-    use roll::Roll;
+    use policy::compound::roll::Roll;
     use super::*;
 
     #[test]

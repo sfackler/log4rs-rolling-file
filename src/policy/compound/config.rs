@@ -1,13 +1,10 @@
-use log4rs::file::raw::Encoder;
-use serde::de::{Deserialize, Deserializer};
+use serde::de::{self, Deserialize, Deserializer};
 use serde_value::Value;
 use std::collections::BTreeMap;
 
 pub struct Config {
-    pub path: String,
-    pub append: Option<bool>,
-    pub encoder: Option<Encoder>,
-    pub policy: Policy,
+    pub trigger: Trigger,
+    pub roller: Roller,
 }
 #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
 const _IMPL_DESERIALIZE_FOR_Config: () =
@@ -20,7 +17,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
              __D: _serde::de::Deserializer {
                 {
                     #[allow(non_camel_case_types)]
-                    enum __Field { __field0, __field1, __field2, __field3, }
+                    enum __Field { __field0, __field1, }
                     impl _serde::de::Deserialize for __Field {
                         #[inline]
                         fn deserialize<__D>(deserializer: &mut __D)
@@ -42,8 +39,6 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                     match value {
                                         0usize => { Ok(__Field::__field0) }
                                         1usize => { Ok(__Field::__field1) }
-                                        2usize => { Ok(__Field::__field2) }
-                                        3usize => { Ok(__Field::__field3) }
                                         _ => {
                                             Err(_serde::de::Error::invalid_value("expected a field"))
                                         }
@@ -53,10 +48,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                  -> ::std::result::Result<__Field, __E> where
                                  __E: _serde::de::Error {
                                     match value {
-                                        "path" => { Ok(__Field::__field0) }
-                                        "append" => { Ok(__Field::__field1) }
-                                        "encoder" => { Ok(__Field::__field2) }
-                                        "policy" => { Ok(__Field::__field3) }
+                                        "trigger" => { Ok(__Field::__field0) }
+                                        "roller" => { Ok(__Field::__field1) }
                                         _ =>
                                         Err(_serde::de::Error::unknown_field(value)),
                                     }
@@ -65,12 +58,10 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                  -> ::std::result::Result<__Field, __E> where
                                  __E: _serde::de::Error {
                                     match value {
-                                        b"path" => { Ok(__Field::__field0) }
-                                        b"append" => { Ok(__Field::__field1) }
-                                        b"encoder" => {
-                                            Ok(__Field::__field2)
+                                        b"trigger" => {
+                                            Ok(__Field::__field0)
                                         }
-                                        b"policy" => { Ok(__Field::__field3) }
+                                        b"roller" => { Ok(__Field::__field1) }
                                         _ => {
                                             let value =
                                                 ::std::string::String::from_utf8_lossy(value);
@@ -88,6 +79,10 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
 
 
 
+
+
+
+
                           _serde::de::Deserializer> _serde::de::Visitor for
                      __Visitor<__D> {
                         type
@@ -100,31 +95,15 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                          __V: _serde::de::SeqVisitor {
                             {
                                 let __field0 =
-                                    match try!(visitor . visit :: < String > (
-                                                )) {
+                                    match try!(visitor . visit :: < Trigger >
+                                               (  )) {
                                         Some(value) => { value }
                                         None => {
                                             return Err(_serde::de::Error::end_of_stream());
                                         }
                                     };
                                 let __field1 =
-                                    match try!(visitor . visit :: <
-                                               Option<bool> > (  )) {
-                                        Some(value) => { value }
-                                        None => {
-                                            return Err(_serde::de::Error::end_of_stream());
-                                        }
-                                    };
-                                let __field2 =
-                                    match try!(visitor . visit :: <
-                                               Option<Encoder> > (  )) {
-                                        Some(value) => { value }
-                                        None => {
-                                            return Err(_serde::de::Error::end_of_stream());
-                                        }
-                                    };
-                                let __field3 =
-                                    match try!(visitor . visit :: < Policy > (
+                                    match try!(visitor . visit :: < Roller > (
                                                 )) {
                                         Some(value) => { value }
                                         None => {
@@ -132,10 +111,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         }
                                     };
                                 try!(visitor . end (  ));
-                                Ok(Config{path: __field0,
-                                          append: __field1,
-                                          encoder: __field2,
-                                          policy: __field3,})
+                                Ok(Config{trigger: __field0,
+                                          roller: __field1,})
                             }
                         }
                         #[inline]
@@ -143,11 +120,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                          -> ::std::result::Result<Config, __V::Error> where
                          __V: _serde::de::MapVisitor {
                             {
-                                let mut __field0: Option<String> = None;
-                                let mut __field1: Option<Option<bool>> = None;
-                                let mut __field2: Option<Option<Encoder>> =
-                                    None;
-                                let mut __field3: Option<Policy> = None;
+                                let mut __field0: Option<Trigger> = None;
+                                let mut __field1: Option<Roller> = None;
                                 while let Some(key) =
                                           try!(visitor . visit_key :: <
                                                __Field > (  )) {
@@ -155,44 +129,22 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         __Field::__field0 => {
                                             if __field0.is_some() {
                                                 return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("path"));
+                                                               _serde::de::Error>::duplicate_field("trigger"));
                                             }
                                             __field0 =
                                                 Some(try!(visitor .
                                                           visit_value :: <
-                                                          String > (  )));
+                                                          Trigger > (  )));
                                         }
                                         __Field::__field1 => {
                                             if __field1.is_some() {
                                                 return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("append"));
+                                                               _serde::de::Error>::duplicate_field("roller"));
                                             }
                                             __field1 =
                                                 Some(try!(visitor .
                                                           visit_value :: <
-                                                          Option<bool> > (
-                                                          )));
-                                        }
-                                        __Field::__field2 => {
-                                            if __field2.is_some() {
-                                                return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("encoder"));
-                                            }
-                                            __field2 =
-                                                Some(try!(visitor .
-                                                          visit_value :: <
-                                                          Option<Encoder> > (
-                                                          )));
-                                        }
-                                        __Field::__field3 => {
-                                            if __field3.is_some() {
-                                                return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("policy"));
-                                            }
-                                            __field3 =
-                                                Some(try!(visitor .
-                                                          visit_value :: <
-                                                          Policy > (  )));
+                                                          Roller > (  )));
                                         }
                                     }
                                 }
@@ -200,52 +152,36 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                     match __field0 {
                                         Some(__field0) => __field0,
                                         None =>
-                                        try!(visitor . missing_field ( "path"
-                                             )),
+                                        try!(visitor . missing_field (
+                                             "trigger" )),
                                     };
                                 let __field1 =
                                     match __field1 {
                                         Some(__field1) => __field1,
                                         None =>
                                         try!(visitor . missing_field (
-                                             "append" )),
-                                    };
-                                let __field2 =
-                                    match __field2 {
-                                        Some(__field2) => __field2,
-                                        None =>
-                                        try!(visitor . missing_field (
-                                             "encoder" )),
-                                    };
-                                let __field3 =
-                                    match __field3 {
-                                        Some(__field3) => __field3,
-                                        None =>
-                                        try!(visitor . missing_field (
-                                             "policy" )),
+                                             "roller" )),
                                     };
                                 try!(visitor . end (  ));
-                                Ok(Config{path: __field0,
-                                          append: __field1,
-                                          encoder: __field2,
-                                          policy: __field3,})
+                                Ok(Config{trigger: __field0,
+                                          roller: __field1,})
                             }
                         }
                     }
                     const FIELDS: &'static [&'static str] =
-                        &["path", "append", "encoder", "policy"];
+                        &["trigger", "roller"];
                     deserializer.deserialize_struct("Config", FIELDS,
                                                     __Visitor::<__D>(::std::marker::PhantomData))
                 }
             }
         }
     };
-pub struct Policy {
+pub struct Trigger {
     pub kind: String,
     pub config: Value,
 }
-impl Deserialize for Policy {
-    fn deserialize<D>(d: &mut D) -> Result<Policy, D::Error> where
+impl Deserialize for Trigger {
+    fn deserialize<D>(d: &mut D) -> Result<Trigger, D::Error> where
      D: Deserializer {
         let mut map =
             try!(BTreeMap :: < Value , Value > :: deserialize ( d ));
@@ -254,8 +190,27 @@ impl Deserialize for Policy {
                 Some(kind) =>
                 try!(kind . deserialize_into (  ) . map_err (
                      | e | e . to_error (  ) )),
-                None => "compound".to_owned(),
+                None => return Err(de::Error::missing_field("kind")),
             };
-        Ok(Policy{kind: kind, config: Value::Map(map),})
+        Ok(Trigger{kind: kind, config: Value::Map(map),})
+    }
+}
+pub struct Roller {
+    pub kind: String,
+    pub config: Value,
+}
+impl Deserialize for Roller {
+    fn deserialize<D>(d: &mut D) -> Result<Roller, D::Error> where
+     D: Deserializer {
+        let mut map =
+            try!(BTreeMap :: < Value , Value > :: deserialize ( d ));
+        let kind =
+            match map.remove(&Value::String("kind".to_owned())) {
+                Some(kind) =>
+                try!(kind . deserialize_into (  ) . map_err (
+                     | e | e . to_error (  ) )),
+                None => return Err(de::Error::missing_field("kind")),
+            };
+        Ok(Roller{kind: kind, config: Value::Map(map),})
     }
 }
