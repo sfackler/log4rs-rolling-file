@@ -3,7 +3,6 @@ name = "codegen"
 version = "0.1.0"
 dependencies = [
  "serde_codegen 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
- "syntex 0.37.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
