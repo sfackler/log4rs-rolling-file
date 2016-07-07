@@ -268,7 +268,7 @@ impl RollingFileAppenderBuilder {
 ///   kind: compound
 ///
 ///   # The remainder of the configuration is passed along to the policy's
-///   # builder, and will vary based on the kind of policy.
+///   # deserializer, and will vary based on the kind of policy.
 ///   trigger:
 ///     kind: size
 ///     limit: 10 mb

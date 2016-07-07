@@ -45,6 +45,31 @@ impl Policy for CompoundPolicy {
 }
 
 /// A deserializer for the `CompoundPolicyDeserializer`.
+///
+/// # Configuration
+///
+/// ```yaml
+/// kind: compound
+///
+/// # The trigger, which determines when the log will roll over. Required.
+/// trigger:
+///
+///   # Identifies which trigger is to be used. Required.
+///   kind: size
+///
+///   # The remainder of the configuration is passed to the trigger's
+///   # deserializer, and will vary based on the kind of trigger.
+///   limit: 10 mb
+///
+/// # The roller, which processes the old log file. Required.
+/// roller:
+///
+///   # Identifies which roller is to be used. Required.
+///   kind: delete
+///
+///   # The remainder of the configuration is passed to the roller's
+///   # deserializer, and will vary based on the kind of roller.
+/// ```
 pub struct CompoundPolicyDeserializer;
 
 impl Deserialize for CompoundPolicyDeserializer {
