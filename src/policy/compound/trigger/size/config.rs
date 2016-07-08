@@ -1,4 +1,4 @@
-use serde::de::{Deserialize, Deserializer, Visitor, Error};
+use serde::de::{Deserializer, Visitor, Error};
 use std::ascii::AsciiExt;
 
 pub struct Config {
