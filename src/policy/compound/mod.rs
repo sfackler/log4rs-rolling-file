@@ -9,6 +9,7 @@ use policy::compound::roll::Roll;
 use policy::compound::trigger::Trigger;
 use policy::Policy;
 
+#[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
 pub mod roll;
 pub mod trigger;
@@ -80,12 +81,10 @@ impl Deserialize for CompoundPolicyDeserializer {
                    deserializers: &Deserializers)
                    -> Result<Box<Policy>, Box<Error>> {
         let config: Config = try!(config.deserialize_into());
-        let trigger = try!(deserializers.deserialize("trigger",
-                                                     &config.trigger.kind,
-                                                     config.trigger.config));
-        let roller = try!(deserializers.deserialize("roller",
-                                                    &config.roller.kind,
-                                                    config.roller.config));
+        let trigger =
+            try!(deserializers.deserialize("trigger", &config.trigger.kind, config.trigger.config));
+        let roller =
+            try!(deserializers.deserialize("roller", &config.roller.kind, config.roller.config));
         Ok(Box::new(CompoundPolicy::new(trigger, roller)))
     }
 }

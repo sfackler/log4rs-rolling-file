@@ -68,8 +68,7 @@ mod config;
 pub fn register(d: &mut Deserializers) {
     d.insert("rolling_file".to_owned(),
              Box::new(RollingFileAppenderDeserializer));
-    d.insert("compound".to_owned(),
-             Box::new(CompoundPolicyDeserializer));
+    d.insert("compound".to_owned(), Box::new(CompoundPolicyDeserializer));
     d.insert("size".to_owned(), Box::new(SizeTriggerDeserializer));
     d.insert("delete".to_owned(), Box::new(DeleteRollerDeserializer));
     d.insert("fixed_window".to_owned(),
@@ -144,11 +143,11 @@ pub struct RollingFileAppender {
 impl fmt::Debug for RollingFileAppender {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("RollingFileAppender")
-           .field("path", &self.path)
-           .field("append", &self.append)
-           .field("encoder", &self.encoder)
-           .field("policy", &self.policy)
-           .finish()
+            .field("path", &self.path)
+            .field("append", &self.append)
+            .field("encoder", &self.encoder)
+            .field("policy", &self.policy)
+            .finish()
     }
 }
 
@@ -162,11 +161,11 @@ impl Append for RollingFileAppender {
             }
 
             let file = try!(OpenOptions::new()
-                                .write(true)
-                                .append(self.append)
-                                .truncate(!self.append)
-                                .create(true)
-                                .open(&self.path));
+                .write(true)
+                .append(self.append)
+                .truncate(!self.append)
+                .create(true)
+                .open(&self.path));
             let len = if self.append {
                 try!(self.path.metadata()).len()
             } else {
@@ -296,9 +295,8 @@ impl Deserialize for RollingFileAppenderDeserializer {
             builder = builder.encoder(encoder);
         }
 
-        let policy = try!(deserializers.deserialize("policy",
-                                                    &config.policy.kind,
-                                                    config.policy.config));
+        let policy =
+            try!(deserializers.deserialize("policy", &config.policy.kind, config.policy.config));
         Ok(Box::new(builder.build(config.path, policy)))
     }
 }
