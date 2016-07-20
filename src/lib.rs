@@ -8,13 +8,12 @@
 //!
 //! Like a normal file appender, a rolling file appender is configured with the
 //! location of its log file and the encoder which formats log events written
-//! to it. In addition, it holds "trigger" and "roller" objects. The trigger
-//! determines when the current log file should roll over and be replaced with
-//! a new one. The roller determines what happens to the old log file.
+//! to it. In addition, it holds a "policy" object which controls when a log
+//! file is rolled over and how the old files are archived.
 //!
 //! For example, you may configure an appender to roll the log over once it
 //! reaches 50 megabytes, and to preserve the last 10 log files.
-#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.2")]
+#![doc(html_root_url="https://sfackler.github.io/log4rs-rolling-file/doc/v0.2.0")]
 #![warn(missing_docs)]
 extern crate antidote;
 extern crate log;
@@ -42,14 +41,13 @@ use std::path::{Path, PathBuf};
 use serde_value::Value;
 
 use config::Config;
-use roll::Roll;
-use trigger::{LogFile, Trigger};
-use trigger::size::SizeTriggerDeserializer;
-use roll::delete::DeleteRollerDeserializer;
-use roll::fixed_window::FixedWindowRollerDeserializer;
+use policy::Policy;
+use policy::compound::CompoundPolicyDeserializer;
+use policy::compound::trigger::size::SizeTriggerDeserializer;
+use policy::compound::roll::delete::DeleteRollerDeserializer;
+use policy::compound::roll::fixed_window::FixedWindowRollerDeserializer;
 
-pub mod roll;
-pub mod trigger;
+pub mod policy;
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
 
@@ -59,6 +57,8 @@ mod config;
 ///
 /// * Appenders
 ///   * "rolling_file" -> `RollingFileAppenderDeserializer`
+/// * Policies
+///   *  "compound" -> `CompoundPolicyDeserializer`
 /// * Triggers
 ///   * "size" -> `SizeTriggerDeserializer`
 /// * Rollers
@@ -67,6 +67,7 @@ mod config;
 pub fn register(d: &mut Deserializers) {
     d.insert("rolling_file".to_owned(),
              Box::new(RollingFileAppenderDeserializer));
+    d.insert("compound".to_owned(), Box::new(CompoundPolicyDeserializer));
     d.insert("size".to_owned(), Box::new(SizeTriggerDeserializer));
     d.insert("delete".to_owned(), Box::new(DeleteRollerDeserializer));
     d.insert("fixed_window".to_owned(),
@@ -93,25 +94,59 @@ impl io::Write for LogWriter {
 
 impl encode::Write for LogWriter {}
 
+/// Information about the active log file.
+pub struct LogFile<'a> {
+    writer: &'a mut Option<LogWriter>,
+    path: &'a Path,
+    len: u64,
+}
+
+impl<'a> LogFile<'a> {
+    /// Returns the path to the log file.
+    pub fn path(&self) -> &Path {
+        self.path
+    }
+
+    /// Returns an estimate of the log file's current size.
+    ///
+    /// This is calculated by taking the size of the log file when it is opened
+    /// and adding the number of bytes written. It may be inaccurate if any
+    /// writes have failed or if another process has modified the file
+    /// concurrently.
+    pub fn len(&self) -> u64 {
+        self.len
+    }
+
+    /// Triggers the log file to roll over.
+    ///
+    /// A policy must call this method when it wishes to roll the log. The
+    /// appender's handle to the file will be closed, which is necessary to
+    /// move or delete the file on Windows.
+    ///
+    /// If this method is called, the log file must no longer be present when
+    /// the policy returns.
+    pub fn roll(&mut self) {
+        *self.writer = None;
+    }
+}
+
 /// An appender which archives log files in a configurable strategy.
 pub struct RollingFileAppender {
     writer: Mutex<Option<LogWriter>>,
     path: PathBuf,
     append: bool,
     encoder: Box<Encode>,
-    trigger: Box<Trigger>,
-    roller: Box<Roll>,
+    policy: Box<Policy>,
 }
 
 impl fmt::Debug for RollingFileAppender {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("RollingFileAppender")
-           .field("path", &self.path)
-           .field("append", &self.append)
-           .field("encoder", &self.encoder)
-           .field("trigger", &self.trigger)
-           .field("roller", &self.roller)
-           .finish()
+            .field("path", &self.path)
+            .field("append", &self.append)
+            .field("encoder", &self.encoder)
+            .field("policy", &self.policy)
+            .finish()
     }
 }
 
@@ -125,11 +160,11 @@ impl Append for RollingFileAppender {
             }
 
             let file = try!(OpenOptions::new()
-                                .write(true)
-                                .append(self.append)
-                                .truncate(!self.append)
-                                .create(true)
-                                .open(&self.path));
+                .write(true)
+                .append(self.append)
+                .truncate(!self.append)
+                .create(true)
+                .open(&self.path));
             let len = if self.append {
                 try!(self.path.metadata()).len()
             } else {
@@ -149,12 +184,13 @@ impl Append for RollingFileAppender {
             writer.len
         };
 
-        if try!(self.trigger.trigger(&LogFile::new(&self.path, len))) {
-            *writer = None;
-            try!(self.roller.roll(&self.path));
-        }
+        let mut file = LogFile {
+            writer: &mut writer,
+            path: &self.path,
+            len: len,
+        };
 
-        Ok(())
+        self.policy.process(&mut file)
     }
 }
 
@@ -192,7 +228,7 @@ impl RollingFileAppenderBuilder {
     }
 
     /// Constructs a `RollingFileAppender`.
-    pub fn build<P>(self, path: P, trigger: Box<Trigger>, roller: Box<Roll>) -> RollingFileAppender
+    pub fn build<P>(self, path: P, policy: Box<Policy>) -> RollingFileAppender
         where P: AsRef<Path>
     {
         RollingFileAppender {
@@ -200,8 +236,7 @@ impl RollingFileAppenderBuilder {
             path: path.as_ref().to_owned(),
             append: self.append,
             encoder: self.encoder.unwrap_or_else(|| Box::new(PatternEncoder::default())),
-            trigger: trigger,
-            roller: roller,
+            policy: policy,
         }
     }
 }
@@ -224,14 +259,20 @@ impl RollingFileAppenderBuilder {
 /// encoder:
 ///   kind: pattern
 ///
-/// # The trigger which will identify when the log should be rolled. Required.
-/// trigger:
-///   kind: size
-///   limit: 10 mb
+/// # The policy which handles rotation of the log file. Required.
+/// policy:
+///   # Identifies which policy is to be used. If no kind is specified, it will
+///   # default to "compound".
+///   kind: compound
 ///
-/// # The roller which will archive the log file when it rolls over. Required.
-/// roller:
-///   kind: delete
+///   # The remainder of the configuration is passed along to the policy's
+///   # deserializer, and will vary based on the kind of policy.
+///   trigger:
+///     kind: size
+///     limit: 10 mb
+///
+///   roller:
+///     kind: delete
 /// ```
 pub struct RollingFileAppenderDeserializer;
 
@@ -253,18 +294,10 @@ impl Deserialize for RollingFileAppenderDeserializer {
             builder = builder.encoder(encoder);
         }
 
-        let trigger = try!(deserializers.deserialize("trigger",
-                                                     &config.trigger.kind,
-                                                     config.trigger.config));
-        let roller = try!(deserializers.deserialize("roller",
-                                                    &config.roller.kind,
-                                                    config.roller.config));
-        Ok(Box::new(builder.build(config.path, trigger, roller)))
+        let policy =
+            try!(deserializers.deserialize("policy", &config.policy.kind, config.policy.config));
+        Ok(Box::new(builder.build(config.path, policy)))
     }
-}
-
-trait LogFileInternals<'a> {
-    fn new(path: &'a Path, len: u64) -> LogFile<'a>;
 }
 
 #[cfg(test)]
@@ -280,22 +313,25 @@ appenders:
   foo:
     kind: rolling_file
     path: foo.log
-    trigger:
-      kind: size
-      limit: 1024
-    roller:
-      kind: delete
+    policy:
+      trigger:
+        kind: size
+        limit: 1024
+      roller:
+        kind: delete
   bar:
     kind: rolling_file
     path: foo.log
-    trigger:
-      kind: size
-      limit: 5 mb
-    roller:
-      kind: fixed_window
-      pattern: 'foo.log.{}'
-      base: 1
-      count: 5
+    policy:
+      kind: compound
+      trigger:
+        kind: size
+        limit: 5 mb
+      roller:
+        kind: fixed_window
+        pattern: 'foo.log.{}'
+        base: 1
+        count: 5
 ";
 
         let mut deserializers = Deserializers::default();

@@ -1,11 +1,11 @@
 [package]
 name = "log4rs-rolling-file"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 description = "A rolling file appender for log4rs"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/sfackler/log4rs-rolling-file"
-documentation = "https://sfackler.github.io/log4rs-rolling-file/doc/v0.1.2/log4rs_rolling_file"
+documentation = "https://sfackler.github.io/log4rs-rolling-file/doc/v0.2.0/log4rs_rolling_file"
 
 [features]
 gzip = ["flate2"]

@@ -7,8 +7,8 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use roll::Roll;
-use roll::fixed_window::config::Config;
+use policy::compound::roll::Roll;
+use policy::compound::roll::fixed_window::config::Config;
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;
@@ -220,7 +220,7 @@ mod test {
     use std::io::{Read, Write};
     use std::process::Command;
 
-    use roll::Roll;
+    use policy::compound::roll::Roll;
     use super::*;
 
     #[test]
@@ -229,8 +229,8 @@ mod test {
 
         let base = dir.path().to_str().unwrap();
         let roller = FixedWindowRoller::builder()
-                         .build(&format!("{}/foo.log.{{}}", base), 2)
-                         .unwrap();
+            .build(&format!("{}/foo.log.{{}}", base), 2)
+            .unwrap();
 
         let file = dir.path().join("foo.log");
         File::create(&file).unwrap().write_all(b"file1").unwrap();
@@ -272,8 +272,8 @@ mod test {
         let base = dir.path().join("log").join("archive");
         let pattern = base.join("foo.{}.log");
         let roller = FixedWindowRoller::builder()
-                         .build(pattern.to_str().unwrap(), 2)
-                         .unwrap();
+            .build(pattern.to_str().unwrap(), 2)
+            .unwrap();
 
         let file = dir.path().join("foo.log");
         File::create(&file).unwrap().write_all(b"file").unwrap();
@@ -298,8 +298,8 @@ mod test {
         let base = dir.path().join("log").join("archive");
         let pattern = base.join("{}").join("foo.log");
         let roller = FixedWindowRoller::builder()
-                         .build(pattern.to_str().unwrap(), 2)
-                         .unwrap();
+            .build(pattern.to_str().unwrap(), 2)
+            .unwrap();
 
         let file = dir.path().join("foo.log");
         File::create(&file).unwrap().write_all(b"file").unwrap();
@@ -342,10 +342,10 @@ mod test {
         roller.roll(&file).unwrap();
 
         assert!(Command::new("gunzip")
-                    .arg(dir.path().join("0.gz"))
-                    .status()
-                    .unwrap()
-                    .success());
+            .arg(dir.path().join("0.gz"))
+            .status()
+            .unwrap()
+            .success());
 
         let mut file = File::open(dir.path().join("0")).unwrap();
         let mut actual = vec![];

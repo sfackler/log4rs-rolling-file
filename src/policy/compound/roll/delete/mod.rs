@@ -6,8 +6,8 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-use roll::Roll;
-use roll::delete::config::Config;
+use policy::compound::roll::Roll;
+use policy::compound::roll::delete::config::Config;
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod config;

@@ -1,13 +1,7 @@
-use log4rs::file::raw::Encoder;
-use serde::de::{Deserialize, Deserializer};
-use serde_value::Value;
-use std::collections::BTreeMap;
-
 pub struct Config {
-    pub path: String,
-    pub append: Option<bool>,
-    pub encoder: Option<Encoder>,
-    pub policy: Policy,
+    pub pattern: String,
+    pub base: Option<u32>,
+    pub count: u32,
 }
 #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
 const _IMPL_DESERIALIZE_FOR_Config: () =
@@ -15,19 +9,14 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
         extern crate serde as _serde;
         #[automatically_derived]
         impl _serde::de::Deserialize for Config where
-
-
-
          String: _serde::de::Deserialize,
-         Option<bool>: _serde::de::Deserialize,
-         Option<Encoder>: _serde::de::Deserialize,
-         Policy: _serde::de::Deserialize {
+         Option<u32>: _serde::de::Deserialize, u32: _serde::de::Deserialize {
             fn deserialize<__D>(deserializer: &mut __D)
              -> ::std::result::Result<Config, __D::Error> where
              __D: _serde::de::Deserializer {
                 {
                     #[allow(non_camel_case_types)]
-                    enum __Field { __field0, __field1, __field2, __field3, }
+                    enum __Field { __field0, __field1, __field2, }
                     impl _serde::de::Deserialize for __Field {
                         #[inline]
                         fn deserialize<__D>(deserializer: &mut __D)
@@ -50,7 +39,6 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         0usize => { Ok(__Field::__field0) }
                                         1usize => { Ok(__Field::__field1) }
                                         2usize => { Ok(__Field::__field2) }
-                                        3usize => { Ok(__Field::__field3) }
                                         _ => {
                                             Err(_serde::de::Error::invalid_value("expected a field"))
                                         }
@@ -60,10 +48,9 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                  -> ::std::result::Result<__Field, __E> where
                                  __E: _serde::de::Error {
                                     match value {
-                                        "path" => { Ok(__Field::__field0) }
-                                        "append" => { Ok(__Field::__field1) }
-                                        "encoder" => { Ok(__Field::__field2) }
-                                        "policy" => { Ok(__Field::__field3) }
+                                        "pattern" => { Ok(__Field::__field0) }
+                                        "base" => { Ok(__Field::__field1) }
+                                        "count" => { Ok(__Field::__field2) }
                                         _ =>
                                         Err(_serde::de::Error::unknown_field(value)),
                                     }
@@ -72,12 +59,11 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                  -> ::std::result::Result<__Field, __E> where
                                  __E: _serde::de::Error {
                                     match value {
-                                        b"path" => { Ok(__Field::__field0) }
-                                        b"append" => { Ok(__Field::__field1) }
-                                        b"encoder" => {
-                                            Ok(__Field::__field2)
+                                        b"pattern" => {
+                                            Ok(__Field::__field0)
                                         }
-                                        b"policy" => { Ok(__Field::__field3) }
+                                        b"base" => { Ok(__Field::__field1) }
+                                        b"count" => { Ok(__Field::__field2) }
                                         _ => {
                                             let value =
                                                 ::std::string::String::from_utf8_lossy(value);
@@ -92,14 +78,12 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                     }
                     struct __Visitor<__D: _serde::de::Deserializer>(::std::marker::PhantomData<__D>)
                            where String: _serde::de::Deserialize,
-                           Option<bool>: _serde::de::Deserialize,
-                           Option<Encoder>: _serde::de::Deserialize,
-                           Policy: _serde::de::Deserialize;
+                           Option<u32>: _serde::de::Deserialize,
+                           u32: _serde::de::Deserialize;
                     impl <__D: _serde::de::Deserializer> _serde::de::Visitor
                      for __Visitor<__D> where String: _serde::de::Deserialize,
-                     Option<bool>: _serde::de::Deserialize,
-                     Option<Encoder>: _serde::de::Deserialize,
-                     Policy: _serde::de::Deserialize {
+                     Option<u32>: _serde::de::Deserialize,
+                     u32: _serde::de::Deserialize {
                         type
                         Value
                         =
@@ -120,7 +104,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                     };
                                 let __field1 =
                                     match try!(visitor . visit :: <
-                                               Option<bool> > (  )) {
+                                               Option<u32> > (  )) {
                                         Some(value) => { value }
                                         None => {
                                             try!(visitor . end (  ));
@@ -128,28 +112,18 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         }
                                     };
                                 let __field2 =
-                                    match try!(visitor . visit :: <
-                                               Option<Encoder> > (  )) {
+                                    match try!(visitor . visit :: < u32 > (
+                                               )) {
                                         Some(value) => { value }
                                         None => {
                                             try!(visitor . end (  ));
                                             return Err(_serde::de::Error::invalid_length(2usize));
                                         }
                                     };
-                                let __field3 =
-                                    match try!(visitor . visit :: < Policy > (
-                                                )) {
-                                        Some(value) => { value }
-                                        None => {
-                                            try!(visitor . end (  ));
-                                            return Err(_serde::de::Error::invalid_length(3usize));
-                                        }
-                                    };
                                 try!(visitor . end (  ));
-                                Ok(Config{path: __field0,
-                                          append: __field1,
-                                          encoder: __field2,
-                                          policy: __field3,})
+                                Ok(Config{pattern: __field0,
+                                          base: __field1,
+                                          count: __field2,})
                             }
                         }
                         #[inline]
@@ -158,10 +132,8 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                          __V: _serde::de::MapVisitor {
                             {
                                 let mut __field0: Option<String> = None;
-                                let mut __field1: Option<Option<bool>> = None;
-                                let mut __field2: Option<Option<Encoder>> =
-                                    None;
-                                let mut __field3: Option<Policy> = None;
+                                let mut __field1: Option<Option<u32>> = None;
+                                let mut __field2: Option<u32> = None;
                                 while let Some(key) =
                                           try!(visitor . visit_key :: <
                                                __Field > (  )) {
@@ -169,7 +141,7 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         __Field::__field0 => {
                                             if __field0.is_some() {
                                                 return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("path"));
+                                                               _serde::de::Error>::duplicate_field("pattern"));
                                             }
                                             __field0 =
                                                 Some(try!(visitor .
@@ -179,34 +151,23 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                         __Field::__field1 => {
                                             if __field1.is_some() {
                                                 return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("append"));
+                                                               _serde::de::Error>::duplicate_field("base"));
                                             }
                                             __field1 =
                                                 Some(try!(visitor .
                                                           visit_value :: <
-                                                          Option<bool> > (
+                                                          Option<u32> > (
                                                           )));
                                         }
                                         __Field::__field2 => {
                                             if __field2.is_some() {
                                                 return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("encoder"));
+                                                               _serde::de::Error>::duplicate_field("count"));
                                             }
                                             __field2 =
                                                 Some(try!(visitor .
-                                                          visit_value :: <
-                                                          Option<Encoder> > (
-                                                          )));
-                                        }
-                                        __Field::__field3 => {
-                                            if __field3.is_some() {
-                                                return Err(<__V::Error as
-                                                               _serde::de::Error>::duplicate_field("policy"));
-                                            }
-                                            __field3 =
-                                                Some(try!(visitor .
-                                                          visit_value :: <
-                                                          Policy > (  )));
+                                                          visit_value :: < u32
+                                                          > (  )));
                                         }
                                     }
                                 }
@@ -215,61 +176,34 @@ const _IMPL_DESERIALIZE_FOR_Config: () =
                                     match __field0 {
                                         Some(__field0) => __field0,
                                         None =>
-                                        try!(visitor . missing_field ( "path"
-                                             )),
+                                        try!(visitor . missing_field (
+                                             "pattern" )),
                                     };
                                 let __field1 =
                                     match __field1 {
                                         Some(__field1) => __field1,
                                         None =>
-                                        try!(visitor . missing_field (
-                                             "append" )),
+                                        try!(visitor . missing_field ( "base"
+                                             )),
                                     };
                                 let __field2 =
                                     match __field2 {
                                         Some(__field2) => __field2,
                                         None =>
-                                        try!(visitor . missing_field (
-                                             "encoder" )),
+                                        try!(visitor . missing_field ( "count"
+                                             )),
                                     };
-                                let __field3 =
-                                    match __field3 {
-                                        Some(__field3) => __field3,
-                                        None =>
-                                        try!(visitor . missing_field (
-                                             "policy" )),
-                                    };
-                                Ok(Config{path: __field0,
-                                          append: __field1,
-                                          encoder: __field2,
-                                          policy: __field3,})
+                                Ok(Config{pattern: __field0,
+                                          base: __field1,
+                                          count: __field2,})
                             }
                         }
                     }
                     const FIELDS: &'static [&'static str] =
-                        &["path", "append", "encoder", "policy"];
+                        &["pattern", "base", "count"];
                     deserializer.deserialize_struct("Config", FIELDS,
                                                     __Visitor::<__D>(::std::marker::PhantomData))
                 }
             }
         }
     };
-pub struct Policy {
-    pub kind: String,
-    pub config: Value,
-}
-impl Deserialize for Policy {
-    fn deserialize<D>(d: &mut D) -> Result<Policy, D::Error> where
-     D: Deserializer {
-        let mut map =
-            try!(BTreeMap :: < Value , Value > :: deserialize ( d ));
-        let kind =
-            match map.remove(&Value::String("kind".to_owned())) {
-                Some(kind) =>
-                try!(kind . deserialize_into (  ) . map_err (
-                     | e | e . to_error (  ) )),
-                None => "compound".to_owned(),
-            };
-        Ok(Policy{kind: kind, config: Value::Map(map),})
-    }
-}
