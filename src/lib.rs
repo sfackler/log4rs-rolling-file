@@ -8,9 +8,8 @@
 //!
 //! Like a normal file appender, a rolling file appender is configured with the
 //! location of its log file and the encoder which formats log events written
-//! to it. In addition, it holds "trigger" and "roller" objects. The trigger
-//! determines when the current log file should roll over and be replaced with
-//! a new one. The roller determines what happens to the old log file.
+//! to it. In addition, it holds a "policy" object which controls when a log
+//! file is rolled over and how the old files are archived.
 //!
 //! For example, you may configure an appender to roll the log over once it
 //! reaches 50 megabytes, and to preserve the last 10 log files.
