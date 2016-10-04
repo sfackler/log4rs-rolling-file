@@ -1,7 +1,3 @@
-# log4rs-rolling-file
+# Deprecated
 
-[![Build Status](https://travis-ci.org/sfackler/log4rs-rolling-file.svg?branch=master)](https://travis-ci.org/sfackler/log4rs-rolling-file)
-
-[Documentation](https://sfackler.github.io/log4rs-rolling-file/doc/v0.2.0/log4rs_rolling_file)
-
-A rolling file appender for log4rs
+The rolling file appender is now built into log4rs 0.5.
